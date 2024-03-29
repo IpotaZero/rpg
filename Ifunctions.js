@@ -158,6 +158,11 @@ const Iimage = class {
 	}
 }
 
+
+Sound_Data.ok = new Iaudio("audios/ok.wav")
+Sound_Data.cancel = new Iaudio("audios/cancel.wav")
+Sound_Data.select = new Iaudio("audios/select.wav")
+
 const Image_Data = {};
 
 const gcd = (x, y) => x % y ? gcd(y, x % y) : y
@@ -451,20 +456,21 @@ const Icommand = class {
 		this.cancel = false
 		if (pushed.includes("cancel")) {
 			this.cancel = true
-			// Sound_Data.cancel.play()
+			Sound_Data.cancel.play()
 		}
 
 		if (option != null) {
 			Itext4(this.frame * 2, this.x + this.line_space, this.y, this.line_space, option)
 			Itext(this.frame, this.x, this.y + this.line_space * this.current_value, "→")
 
-			if (pushed.includes("ArrowDown")) { this.current_value++; }
-			if (pushed.includes("ArrowUp")) { this.current_value--; }
+			if (pushed.includes("ArrowDown")) { this.current_value++; Sound_Data.select.play() }
+			if (pushed.includes("ArrowUp")) { this.current_value--; Sound_Data.select.play() }
 			this.current_value = (this.current_value + option.length) % option.length
 			if (pushed.includes("ok")) {
 				//押したときなんかなります
 				Iget(this.start, this.current_branch)?.(this)
 
+				Sound_Data.ok.play()
 
 				this.current_branch += this.current_value
 				this.frame = 0
