@@ -1,0 +1,68 @@
+body {
+  background-color: #121212;
+  text-align: center;
+
+  overflow: hidden;
+
+}
+
+.canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  /* ビューポートの高さいっぱいに伸ばす */
+}
+
+input[type="button"] {
+  /* input要素のうちtype属性値がbuttonのものに対して装飾 */
+  color: white;
+
+  background-color: black;
+  border: 1px solid white;
+
+  font-family: serif;
+
+  width: 140px;
+}
+
+input[type="button"]:hover {
+  /* マウスが載ったとき */
+  color: black;
+
+  background-color: white;
+  border: 1px solid black;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 120px;
+  /* 全体の幅を720pxに調整 */
+  height: 10px;
+  border-radius: 5px;
+  background: white;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: black;
+  border: 2px solid white;
+  /* 白線で縁取り */
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: black;
+  cursor: pointer;
+}
