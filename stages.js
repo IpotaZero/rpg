@@ -196,7 +196,7 @@ const Event_Enemy = class extends Event {
             this.cooldown = 60
 
             scene_dark.run("curtain", 36, scene_battle, null, () => {
-                ctx.globalAlpha = 0.2
+                ctx.globalAlpha = 0.4
                 Irect(0, 0, width, height, "#400040")
                 ctx.globalAlpha = 1
             })

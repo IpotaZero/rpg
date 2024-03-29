@@ -334,6 +334,12 @@ const scene_battle = new class extends Scene {
 
   start() {
     this.command.reset()
+    BGM = new Iaudio("audios/j14.wav", "bgm")
+    BGM.play()
+  }
+
+  end() {
+    BGM.pause()
   }
 
   loop() {
@@ -357,7 +363,7 @@ const scene_battle = new class extends Scene {
     this.aqua.app.draw()
     scene_main.draw_front()
 
-    ctx.globalAlpha = 0.2
+    ctx.globalAlpha = 0.4
     Irect(0, 0, width, height, "#400040")
 
     this.circle.forEach(c => {
