@@ -51,11 +51,11 @@ const Iaudio = class {
 		if (this.type == "se") {
 			this.audio.currentTime = 0
 			this.audio.muted = Sound_Data.mute_se
-			// this.audio.volume = config.data.volume_se * this.volume / 12
+			this.audio.volume = this.volume
 		} else if (this.type == "bgm") {
 			this.audio.loop = true
 			this.audio.muted = Sound_Data.mute_bgm
-			// this.audio.volume = config.data.volume_bgm * this.volume / 12
+			this.audio.volume = this.volume
 
 		}
 
@@ -82,6 +82,11 @@ const Iaudio = class {
 	end() {
 		this.audio.loop = false
 		this.ended = !this.ended
+	}
+
+	set(key, value) {
+		this[key] = value
+		return this
 	}
 }
 
@@ -456,21 +461,21 @@ const Icommand = class {
 		this.cancel = false
 		if (pushed.includes("cancel")) {
 			this.cancel = true
-			Sound_Data.cancel.play()
+			// Sound_Data.cancel.play()
 		}
 
 		if (option != null) {
 			Itext4(this.frame * 2, this.x + this.line_space, this.y, this.line_space, option)
 			Itext(this.frame, this.x, this.y + this.line_space * this.current_value, "→")
 
-			if (pushed.includes("ArrowDown")) { this.current_value++; Sound_Data.select.play() }
-			if (pushed.includes("ArrowUp")) { this.current_value--; Sound_Data.select.play() }
+			if (pushed.includes("ArrowDown")) { this.current_value++; /*Sound_Data.select.play()*/ }
+			if (pushed.includes("ArrowUp")) { this.current_value--; /*Sound_Data.select.play()*/ }
 			this.current_value = (this.current_value + option.length) % option.length
 			if (pushed.includes("ok")) {
 				//押したときなんかなります
 				Iget(this.start, this.current_branch)?.(this)
 
-				Sound_Data.ok.play()
+				// Sound_Data.ok.play()
 
 				this.current_branch += this.current_value
 				this.frame = 0
