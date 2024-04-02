@@ -1,14 +1,20 @@
 const se_door = new Iaudio("audios/ドアを閉める2.mp3", "se")
 const se_step = new Iaudio("audios/家の階段を駆け上る.mp3", "se")
+const se_road = new Iaudio("audios/砂利の上を走る.mp3", "se")
+const se_glass = new Iaudio("audios/ガラスが割れる2.mp3", "se")
 
 const Stage = class {
-    constructor(name, width, backgrounds = { back: [], front: [] }, events = []) {
+    constructor(name, width, backgrounds = { back: [], front: [] }, events = [], _height = height) {
         this.name = name
         this.width = width
         this.backgrounds = backgrounds
         this.events = events
+
+        this.height = _height
     }
 }
+
+const ef_ex = new Iimage("images/ef_ex.png", 0, 300, 120, 120)
 
 
 const Event = class {
@@ -46,6 +52,12 @@ const Event = class {
             this.app.draw()
         }
 
+        if (this.is_touched()) {
+            ef_ex.x = scene_main.player.p.x
+            ef_ex.y = scene_main.player.p.y - 300
+            ef_ex.draw()
+        }
+
         IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2)
     }
 
@@ -76,9 +88,14 @@ const Event_Move = class extends Event {
             scene_dark.run("blink", 24, scene_main, () => {
                 scene_main.player.p.x = this.x
                 scene_main.stage = this.to()
+
+                Icamera.range[1] = this.to().width
+
                 Icamera.p.x = scene_main.player.p.x - width / 2
-                if (Icamera.p.x < 0) { Icamera.p.x = 0 }
-                if (Icamera.p.x > scene_main.stage.width - width) { Icamera.p.x = scene_main.stage.width - width }
+                Icamera.clamp()
+                scene_main.characters.purine.p = scene_main.player.p
+
+
                 this.end()
             })
 
@@ -100,6 +117,7 @@ const Event_Conversation = class extends Event {
         if ((pushed.includes("ok")) && this.is_touched()) {
             scene_event.event = this
             scene_manager.move_to(scene_event)
+            scene_main.player.p.y = height - scene_main.player.r
         }
 
     }
@@ -113,7 +131,7 @@ const Event_Conversation = class extends Event {
         Irect(20, 20, width - 40, 320, "#121212")
         Irect(20, 20, width - 40, 320, "#c0c0c0", "stroke", 12)
 
-        Ifont({ size: 48, colour: "#c0c0c0", font: "serif" })
+        Ifont({ size: 48, colour: "#c0c0c0", font: "Pixel" })
         Itext5(this.frame / 1.4, 40, 80, font_size, Iadjust(width - 120, this.text[this.text_num]))
 
         if (pushed.includes("ok") || pushed.includes("cancel")) {
@@ -155,9 +173,7 @@ const Event_Illustlation = class extends Event {
     }
 
     event_loop() {
-
         this.illust.draw()
-
 
         if (pushed.includes("ok") || pushed.includes("cancel")) {
             this.is_done = true
@@ -224,6 +240,8 @@ const Event_Enemy = class extends Event {
     }
 }
 
+const event_nothing = new Event(new vec(0, 0), 40, null).set("draw", function () { IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2) })
+
 const stage_temporary = new Stage("仮部屋", 1080, {}, [])
 
 //east
@@ -238,19 +256,23 @@ const stage_corridor_east_0 = new Stage("東棟0階廊下", 4320, {
     ]
 }, [
     new Event_Move(new vec(200, 550), 900, () => stage_classroom_0, se_door),
-
     new Event_Enemy(new vec(500, 550), 40, null),
-
     new Event_Move(new vec(900, 550), 200, () => stage_classroom_0, se_door),
+
     new Event_Move(new vec(1820, 550), 1980, () => stage_health_room, se_door),
+
     new Event_Switch(new vec(1370, 550), 40, [
         new Event_Conversation(null, null, null, ["だめ、プリンに会わなきゃ"]),
         new Event_Move(null, 1890, () => stage_corridor_west_0, se_step)
-    ], () => data.flag.meet_purine ? 1 : 0),
+    ], () => data.flag.member_num >= 2 ? 1 : 0),
+
+    new Event_Move(new vec(2960, 550), 900, () => stage_warehouse_under_stairs_east, se_door),
+
     new Event_Switch(new vec(3500, 550), 40, [
         new Event_Conversation(null, null, null, ["だめ、プリンに会わなきゃ"]),
         new Event_Move(null, 2960, () => stage_corridor_east_1, se_step),
-    ], () => data.flag.meet_purine ? 1 : 0),
+    ], () => data.flag.member_num >= 2 ? 1 : 0),
+
     new Event_Move(new vec(4200, 550), 100, () => stage_passage_0, se_door)
 ])
 
@@ -351,9 +373,21 @@ const stage_health_room = new Stage("保健室", 2160, {
 }, [
     // new Event_Move(new vec(270, 550), 270, () => stage_m_health_room).set("end", () => { back_paper = back_paper_1 }),
     new Event_Move(new vec(1980, 550), 1820, () => stage_corridor_east_0, se_door),
-    new Event_Conversation(new vec(1430, 580), 100, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
-        ["プリン: あら、アクア どうしたの？", "プリン: なんでお仕事してるか分からなくなったって？", "プリン: ......そういえばあたしも何でお仕事してるんだっけ？", "プリン: 校長先生に相談してみたら？校長室は西棟0階よ", "プリン: ウイルスに気を付けてね！"]
-    ).set("end", () => { data.flag.meet_purine = true; data.task = "xxx" })
+
+    new Event_Switch(new vec(1430, 580), 100, [
+        new Event_Conversation(null, null, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
+            ["プリン: あら、アクア どうしたの？", "プリン: なんでお仕事してるか分からなくなったって？", "プリン: ......そういえばあたしも何でお仕事してるんだっけ？", "プリン: 今日はもう上がっていろんな人と話してみたら？", "プリン: あたしもついていくわ！", "プリンが仲間になった"]
+        ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2 }),
+        new Event_Conversation(null, null, null, ["ぬくもり"]),
+    ], () => data.flag.member_num >= 2 ? 1 : 0),
+
+
+])
+
+const stage_warehouse_under_stairs_east = new Stage("東棟階段下倉庫", 1080, {
+    back: [new Iimage("images/bg_warehouse.png", 0, 0, 1080, 720)],
+}, [
+    new Event_Move(new vec(900, 550), 2960, () => stage_corridor_east_0, se_door),
 ])
 
 //west
@@ -375,9 +409,9 @@ const stage_corridor_west_0 = new Stage("西棟0階廊下", 5940, {
 
     new Event_Move(new vec(1890, 550), 1370, () => stage_corridor_east_0, se_step),
 
-    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_0_0, se_door),
+    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_0_0, se_step),
     new Event_Conversation(new vec(2690, 550), 40, null, ["自分が写っている"]),
-    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_0_1, se_door),
+    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_0_1, se_step),
 
     new Event_Move(new vec(3460, 550), 900, () => stage_office, se_door),
     new Event_Conversation(new vec(3850, 550), 40, null, ["掲示板"]),
@@ -405,9 +439,9 @@ const stage_corridor_west_1 = new Stage("西棟1階廊下", 5940, {
 
     new Event_Move(new vec(1890, 550), 1370, () => stage_corridor_east_1, se_step),
 
-    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_1_0, se_door),
+    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_1_0, se_step),
     new Event_Conversation(new vec(2690, 550), 40, null, ["自分が写っている"]),
-    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_1_1, se_door),
+    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_1_1, se_step),
 
     new Event_Move(new vec(3460, 550), 900, () => stage_office, se_door),
     new Event_Conversation(new vec(3850, 550), 40, null, ["掲示板"]),
@@ -432,9 +466,9 @@ const stage_corridor_west_2 = new Stage("西棟2階廊下", 5940, {
 
     new Event_Move(new vec(1890, 550), 1370, () => stage_corridor_east_2, se_step),
 
-    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_2_0, se_door),
+    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_2_0, se_step),
     new Event_Conversation(new vec(2690, 550), 40, null, ["自分が写っている"]),
-    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_2_1, se_door),
+    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_2_1, se_step),
 
     new Event_Move(new vec(3460, 550), 900, () => stage_office, se_door),
     new Event_Conversation(new vec(3850, 550), 40, null, ["掲示板"]),
@@ -459,9 +493,9 @@ const stage_corridor_west_3 = new Stage("西棟3階廊下", 5940, {
 
     new Event_Move(new vec(1890, 550), 1370, () => stage_corridor_east_3, se_step),
 
-    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_3_0, se_door),
+    new Event_Move(new vec(2340, 550), 1000, () => stage_toilet_west_3_0, se_step),
     new Event_Conversation(new vec(2690, 550), 40, null, ["自分が写っている"]),
-    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_3_1, se_door),
+    new Event_Move(new vec(3040, 550), 1000, () => stage_toilet_west_3_1, se_step),
 
     new Event_Move(new vec(3460, 550), 900, () => stage_office, se_door),
     new Event_Conversation(new vec(3850, 550), 40, null, ["掲示板"]),
@@ -484,24 +518,24 @@ const stage_rooftop_west = new Stage("西棟屋上", 5940, {
     new Event_Move(new vec(540, 550), 1350, () => stage_corridor_west_3, se_door),
 ])
 
-const stage_toilet_west_0_0 = new Stage("女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_0, se_door)])
-const stage_toilet_west_0_1 = new Stage("男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_0, se_door)])
+const stage_toilet_west_0_0 = new Stage("西棟0階女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_0, se_step)])
+const stage_toilet_west_0_1 = new Stage("西棟0階男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_0, se_step)])
 
-const stage_toilet_west_1_0 = new Stage("女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_1, se_door)])
-const stage_toilet_west_1_1 = new Stage("男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_1, se_door)])
+const stage_toilet_west_1_0 = new Stage("西棟1階女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_1, se_step)])
+const stage_toilet_west_1_1 = new Stage("西棟1階男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_1, se_step)])
 
-const stage_toilet_west_2_0 = new Stage("女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [
-    new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_2, se_door),
+const stage_toilet_west_2_0 = new Stage("西棟2階女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [
+    new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_2, se_step),
     new Event_Switch(new vec(160, 550), 40, [
         new Event_Conversation(new vec(160, 550), 40, null, ["何かの気配を感じる......"]),
         new Event_Conversation(new vec(160, 550), 40, null, ["シトリ: はーなーこさんっあーそびーましょー！", "???: いいよー！", "シトリ: えっ", "???: じゃあ首絞めごっこで遊ぼうか！"])
     ], () => data.flag.member_num == 4 ? 1 : 0)
 ])
 
-const stage_toilet_west_2_1 = new Stage("男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_2, se_door)])
+const stage_toilet_west_2_1 = new Stage("西棟2階男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_2, se_step)])
 
-const stage_toilet_west_3_0 = new Stage("女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_2, se_door)])
-const stage_toilet_west_3_1 = new Stage("男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_2, se_door)])
+const stage_toilet_west_3_0 = new Stage("西棟3階女子トイレ", 1080, { back: [new Iimage("images/bg_toilet_0.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 2340, () => stage_corridor_west_2, se_step)])
+const stage_toilet_west_3_1 = new Stage("西棟3階男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(900, 550), 3040, () => stage_corridor_west_2, se_step)])
 
 const stage_office = new Stage("職員室", 1080, {
     back: [new Iimage("images/bg_office_back.png", 0, 0, 1080, 720)],
@@ -515,7 +549,7 @@ const stage_office = new Stage("職員室", 1080, {
 const stage_principal = new Stage("校長室", 1080, {
     back: [new Iimage("images/bg_principal_back.png", 0, 0, 1080, 720)],
 }, [
-    new Event_Conversation(new vec(270, 550), 40, null, ["校長: 何故働いているか分からない、と？、", "校長: そういう時もあると思いますよ<br>今日はもう上がって様々な人と話してみてはどうでしょうか？"]),
+    new Event_Conversation(new vec(270, 550), 40, null, ["校長: 何故働いているか分からない、と？", "校長: 君はアンドロイドですからねえ<br>その問いは存在理由に近いのではないでしょうか？"]),
     new Event_Move(new vec(1000, 550), 4580, () => stage_corridor_west_0, se_door)
 ])
 
@@ -544,7 +578,7 @@ const stage_passage_0 = new Stage("0階渡り廊下", 1080, {
     new Event_Switch(new vec(980, 550), 40, [
         new Event_Conversation(null, null, null, ["むり、鍵がないよ"]),
         new Event_Move(null, 810, () => stage_corridor_north_0, se_door)
-    ], () => data.flag.key_north ? 1 : 0),
+    ], () => data.flag.member_num >= 3 ? 1 : 0),
 ])
 
 const stage_passage_1 = new Stage("1階渡り廊下", 1080, {
@@ -554,7 +588,7 @@ const stage_passage_1 = new Stage("1階渡り廊下", 1080, {
     new Event_Switch(new vec(980, 550), 40, [
         new Event_Conversation(null, null, null, ["むり、鍵がないよ"]),
         new Event_Move(null, 810, () => stage_corridor_north_1, se_door)
-    ], () => data.flag.key_north ? 1 : 0),
+    ], () => data.flag.member_num >= 3 ? 1 : 0),
 ])
 
 const stage_passage_2 = new Stage("2階渡り廊下", 1080, {
@@ -564,7 +598,7 @@ const stage_passage_2 = new Stage("2階渡り廊下", 1080, {
     new Event_Switch(new vec(980, 550), 40, [
         new Event_Conversation(null, null, null, ["むり、鍵がないよ"]),
         new Event_Move(null, 810, () => stage_corridor_north_2, se_door)
-    ], () => data.flag.key_north ? 1 : 0),
+    ], () => data.flag.member_num >= 3 ? 1 : 0),
 ])
 
 const stage_passage_3 = new Stage("3階渡り廊下", 1080, {
@@ -574,7 +608,7 @@ const stage_passage_3 = new Stage("3階渡り廊下", 1080, {
     new Event_Switch(new vec(980, 550), 40, [
         new Event_Conversation(null, null, null, ["むり、鍵がないよ"]),
         new Event_Move(null, 810, () => stage_corridor_north_3, se_door)
-    ], () => data.flag.key_north ? 1 : 0),
+    ], () => data.flag.member_num >= 3 ? 1 : 0),
 ])
 
 //north
@@ -582,16 +616,18 @@ const stage_passage_3 = new Stage("3階渡り廊下", 1080, {
 const stage_corridor_north_0 = new Stage("北棟0階廊下", 5400, {
     back: [
         new Iimage("images/bg_corridor_exit_left.png", 0, 0, 540, 720),
-        new Iimage("images/bg_corridor_enter_door.png", 540, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 540, 0, 540, 720),
         new Iimage("images/bg_corridor_toilet.png", 1080, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 2160, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 3240, 0, 1080, 720),
+        new Iimage("images/bg_corridor_craft_room.png", 2160, 0, 2160, 720),
         new Iimage("images/bg_corridor_stairs_0.png", 4320, 0, 1080, 720),
     ]
 }, [
-    new Event_Move(new vec(100, 550), 4220, () => stage_passage_gym, se_door),
+    new Event_Move(new vec(100, 550), 4760, () => stage_passage_gym, se_door),
 
     new Event_Move(new vec(810, 550), 1000, () => stage_passage_0, se_door),
+
+    new Event_Move(new vec(2560, 550), 2520, () => stage_craft_room, se_door),
+    new Event_Move(new vec(3920, 550), 740, () => stage_craft_room, se_door),
 
     new Event_Move(new vec(5200, 550), 4600, () => stage_corridor_north_1, se_step),
 
@@ -599,14 +635,16 @@ const stage_corridor_north_0 = new Stage("北棟0階廊下", 5400, {
 
 const stage_corridor_north_1 = new Stage("北棟1階廊下", 5400, {
     back: [
-        new Iimage("images/bg_corridor_enter_door.png", 540, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 540, 0, 540, 720),
         new Iimage("images/bg_corridor_toilet.png", 1080, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 2160, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 3240, 0, 1080, 720),
+        new Iimage("images/bg_corridor_laboratory.png", 2160, 0, 2160, 720),
         new Iimage("images/bg_corridor_stairs_1.png", 4320, 0, 1080, 720),
     ]
 }, [
     new Event_Move(new vec(810, 550), 1000, () => stage_passage_1, se_door),
+
+    new Event_Move(new vec(2560, 550), 2520, () => stage_laboratory, se_door),
+    new Event_Move(new vec(3920, 550), 740, () => stage_laboratory, se_door),
 
     new Event_Move(new vec(4600, 550), 5200, () => stage_corridor_north_0, se_step),
     new Event_Move(new vec(5200, 550), 4600, () => stage_corridor_north_2, se_step),
@@ -614,62 +652,170 @@ const stage_corridor_north_1 = new Stage("北棟1階廊下", 5400, {
 
 const stage_corridor_north_2 = new Stage("北棟2階廊下", 5400, {
     back: [
-        new Iimage("images/bg_corridor_enter_door.png", 540, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 540, 0, 540, 720),
         new Iimage("images/bg_corridor_toilet.png", 1080, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 2160, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 3240, 0, 1080, 720),
-        new Iimage("images/bg_corridor_stairs_1.png", 4320, 0, 1080, 720),
+        new Iimage("images/bg_corridor_cooking_room.png", 2160, 0, 2160, 720),
+        new Iimage("images/bg_corridor_stairs_2.png", 4320, 0, 1080, 720),
     ]
 }, [
     new Event_Move(new vec(810, 550), 1000, () => stage_passage_2, se_door),
 
+    new Event_Move(new vec(2560, 550), 2520, () => stage_cooking_room, se_door),
+    new Event_Move(new vec(3920, 550), 740, () => stage_cooking_room, se_door),
+
     new Event_Move(new vec(4600, 550), 5200, () => stage_corridor_north_1, se_step),
-    new Event_Move(new vec(5200, 550), 4600, () => stage_corridor_north_3, se_step),
+    new Event_Conversation(new vec(5200, 550), 40, null, ["北棟3階へのアクセスには、東棟3階から渡り廊下を通ってください"]),
+
 ])
 
-const stage_corridor_north_3 = new Stage("北棟3階廊下", 5400, {
+const stage_corridor_north_3 = new Stage("北棟3階廊下", 4320, {
     back: [
-        new Iimage("images/bg_corridor_enter_door.png", 540, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 540, 0, 540, 720),
         new Iimage("images/bg_corridor_toilet.png", 1080, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 2160, 0, 1080, 720),
-        new Iimage("images/bg_corridor_classroom.png", 3240, 0, 1080, 720),
-        new Iimage("images/bg_corridor_stairs_1.png", 4320, 0, 1080, 720),
+        new Iimage("images/bg_corridor_computer_room.png", 1890, 0, 2160, 720),
+        new Iimage("images/bg_corridor_exit_right.png", 3780, 0, 540, 720),
     ]
 }, [
     new Event_Move(new vec(810, 550), 1000, () => stage_passage_3, se_door),
 
     new Event_Illustlation(new vec(1620, 550), 40, new Iimage("images/il_mirror.png", 0, 0, width, height, { camera: false })),
 
-    new Event_Move(new vec(4600, 550), 5200, () => stage_corridor_north_2, se_step),
-    new Event_Move(new vec(5200, 550), 3780, () => stage_rooftop_north, se_step),
+    new Event_Move(new vec(2290, 550), 1960, () => stage_computer_room, se_door),
+    new Event_Move(new vec(3650, 550), 200, () => stage_computer_room, se_door),
+
+    new Event_Move(new vec(4220, 550), 200, () => stage_balcony, se_step),
 ])
 
-const stage_rooftop_north = new Stage("北棟屋上", 4320, {
+// const stage_rooftop_north = new Stage("北棟屋上", 4320, {
+//     back: [
+//         new Iimage("images/bg_rooftop.png", 0, 0, 1080, 720),
+//         new Iimage("images/bg_rooftop.png", 1080, 0, 1080, 720),
+//         new Iimage("images/bg_rooftop.png", 2160, 0, 1080, 720),
+//         new Iimage("images/bg_rooftop_door.png", 3240, 0, 1080, 720),
+//     ]
+// }, [
+//     new Event_Move(new vec(3780, 550), 5200, () => stage_corridor_north_3, se_door),
+// ])
+
+const stage_balcony = new Stage("バルコニー", 810, {
+    back: [new Iimage("images/bg_balcony_back.png", -135, 0, 1080, 720),],
+    front: [new Iimage("images/bg_balcony_front.png", -135, 0, 1080, 720),],
+}, [
+    new Event_Move(new vec(200, 380), 4220, () => stage_corridor_north_3, se_step),
+], 550)
+
+const stage_craft_room = new Stage("図工室", 3240, {
     back: [
-        new Iimage("images/bg_rooftop.png", 0, 0, 1080, 720),
-        new Iimage("images/bg_rooftop.png", 1080, 0, 1080, 720),
-        new Iimage("images/bg_rooftop.png", 2160, 0, 1080, 720),
-        new Iimage("images/bg_rooftop_door.png", 3240, 0, 1080, 720),
+        new Iimage("images/bg_craft_room_0.png", 0, 0, 540, 720),
+        new Iimage("images/bg_craft_room_1.png", 540, 0, 2160, 720),
+        new Iimage("images/bg_craft_room_2.png", 2700, 0, 540, 720),
     ]
 }, [
-    new Event_Move(new vec(3780, 550), 5200, () => stage_corridor_north_3, se_door),
+    new Event_Move(new vec(740, 550), 3920, () => stage_corridor_north_0, se_door),
+    new Event_Move(new vec(2520, 550), 2560, () => stage_corridor_north_0, se_door),
 ])
 
-const stage_passage_gym = new Stage("体育館前通路", 4320, {
+const stage_laboratory = new Stage("理科室", 3240, {
     back: [
-        new Iimage("images/bg_passage_gym.png", 0, 0, 1080, 720),
-        new Iimage("images/bg_passage_gym.png", 3240, 0, 1080, 720),
+        new Iimage("images/bg_laboratory_0.png", 0, 0, 540, 720),
+        new Iimage("images/bg_laboratory_1.png", 540, 0, 2160, 720),
+        new Iimage("images/bg_laboratory_2.png", 2700, 0, 540, 720),
     ]
 }, [
-    new Event_Move(new vec(4220, 550), 100, () => stage_corridor_north_0, se_step),
+    new Event_Move(new vec(740, 550), 3920, () => stage_corridor_north_1, se_door),
+    new Event_Move(new vec(2520, 550), 2560, () => stage_corridor_north_1, se_door),
+])
+
+const stage_cooking_room = new Stage("調理室", 3240, {
+    back: [
+        new Iimage("images/bg_cooking_room_0.png", 0, 0, 540, 720),
+        new Iimage("images/bg_cooking_room_1.png", 540, 0, 2160, 720),
+        new Iimage("images/bg_cooking_room_2.png", 2700, 0, 540, 720),
+    ]
+}, [
+    new Event_Conversation(new vec(200, 550), 40, null, ["ほうちょう"]).set("end", () => { se_glass.play(); data.flag.broken_plate = true }),
+    new Event_Move(new vec(740, 550), 3920, () => stage_corridor_north_2, se_door),
+
+    new Event_Switch(new vec(1680, 550), 40, [event_nothing, new Event_Conversation(null, null, null, ["皿が割れている"])], () => data.flag.broken_plate ? 1 : 0),
+
+    new Event_Move(new vec(2520, 550), 2560, () => stage_corridor_north_2, se_door),
+])
+
+const stage_computer_room = new Stage("コンピュータ室", 2160, {
+    back: [new Iimage("images/bg_computer_room_back.png", 0, 0, 2160, 720),],
+    front: [new Iimage("images/bg_computer_room_front.png", 0, 0, 2160, 720),]
+}, [
+    new Event_Move(new vec(200, 550), 3650, () => stage_corridor_north_3, se_door),
+    new Event_Move(new vec(1920, 550), 2290, () => stage_corridor_north_3, se_door),
+])
+
+//gym
+
+const stage_passage_gym = new Stage("体育館前通路", 4860, {
+    back: [
+        new Iimage("images/bg_sign_pool.png", 0, 0, 540, 720),
+        new Iimage("images/bg_passage_gym.png", 540, 0, 1080, 720),
+        new Iimage("images/bg_passage_gym.png", 2700, 0, 1080, 720),
+        new Iimage("images/bg_gap.png", 4050, 0, 540, 720),
+        new Iimage("images/bg_sign_right.png", 4320, 0, 540, 720),
+    ]
+}, [
     new Event_Move(new vec(100, 550), 2060, () => stage_pool_entrance, se_door),
+
+    new Event_Move(new vec(1080, 550), 2700, () => stage_gym, se_door),
+    new Event_Move(new vec(3240, 550), 540, () => stage_gym, se_door),
+
+    new Event_Move(new vec(4320, 550), 100, () => stage_gym_entrance, se_road),
+
+    new Event_Move(new vec(4760, 550), 100, () => stage_corridor_north_0, se_door),
+
+])
+
+const stage_gym = new Stage("体育館", 3240, {
+    back: [
+        new Iimage("images/bg_sign_left.png", 0, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 270, 0, 540, 720),
+        new Iimage("images/bg_corridor_door.png", 2430, 0, 540, 720),
+        new Iimage("images/bg_sign_right.png", 2700, 0, 540, 720),
+    ]
+}, [
+    new Event_Move(new vec(100, 550), 540, () => stage_gym_entrance, se_door),
+    new Event_Move(new vec(540, 550), 3240, () => stage_passage_gym, se_door),
+    new Event_Move(new vec(2700, 550), 1080, () => stage_passage_gym, se_door),
+    new Event_Move(new vec(3140, 550), 100, () => stage_gym_stage, se_door),
+])
+
+const stage_gym_stage = new Stage("壇上", 1080, {
+    back: [new Iimage("images/bg_gym_stage_back.png", 0, 0, 1080, 720),],
+    front: [new Iimage("images/bg_gym_stage_front.png", 0, 0, 1080, 720),],
+}, [
+    new Event_Move(new vec(100, 380), 3140, () => stage_gym, se_door),
+    new Event_Move(new vec(980, 380), 100, () => stage_gym_warehouse, se_door),
+], 550)
+
+const stage_gym_warehouse = new Stage("体育館倉庫", 1080, {
+    back: [new Iimage("images/bg_gym_warehouse.png", 0, 0, 1080, 720),]
+}, [
+    new Event_Move(new vec(100, 550), 980, () => stage_gym_stage, se_door),
+])
+
+const stage_gym_entrance = new Stage("体育館入口", 1080, {
+    back: [new Iimage("images/bg_gym_entrance.png", 0, 0, 1080, 720),]
+}, [
+    new Event_Move(new vec(100, 550), 4320, () => stage_passage_gym, se_road),
+    new Event_Move(new vec(540, 550), 100, () => stage_gym, se_door),
+    new Event_Move(new vec(980, 550), 100, () => stage_playground, se_road),
+])
+
+const stage_playground = new Stage("運動場", 6480, {}, [
+    new Event_Move(new vec(100, 550), 980, () => stage_gym_entrance, se_road),
 ])
 
 const stage_pool_entrance = new Stage("プール更衣室前", 2160, {
     back: [
         new Iimage("images/bg_corridor_exit_right.png", 1620, 0, 540, 720),
         new Iimage("images/bg_corridor_enter.png", 0, 0, 540, 720),
-        new Iimage("images/bg_corridor_pool_locker_room.png", 540, 0, 1080, 720),
+        new Iimage("images/bg_corridor_locker_room.png", 540, 0, 1080, 720),
     ]
 }, [
     new Event_Move(new vec(2060, 550), 100, () => stage_passage_gym, se_door),
@@ -706,7 +852,7 @@ const stage_poolside = new Stage("プールサイド", 3240, {
 
 const stage_entrance_teachers_locker_room = new Stage("教員用プール更衣室前", 1620, {
     back: [
-        new Iimage("images/bg_corridor_pool_locker_room.png", 0, 0, 1080, 720),
+        new Iimage("images/bg_corridor_locker_room.png", 0, 0, 1080, 720),
         new Iimage("images/bg_corridor_enter.png", 1080, 0, 540, 720),
     ]
 }, [
@@ -734,5 +880,6 @@ const stage_teachers_pool_locker_room_1 = new Stage("男性教員用プール更
         new Event_Conversation(null, null, null, ["ここにはもうなにもない"])
     ], () => data.item_flag.spare_swimsuit_1 ? 1 : 0),
 ])
+
 
 /**maintenance_space */

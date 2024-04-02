@@ -360,11 +360,12 @@ function Iline2(colour, size, points) {
 	ctx.stroke();
 }
 
-function Ifont({ size, colour, font, text_align } = {}) {
+function Ifont({ size, colour, font, text_align, spacing } = {}) {
 	ctx.fillStyle = colour ?? ctx.fillStyle;
 	font_size = size ?? font_size;
 	ctx.textAlign = text_align ?? ctx.textAlign
-	ctx.font = font_size + "px " + (font ?? "Arial");
+	ctx.font = font_size + "px " + (font ?? ctx.font.slice(6));
+	ctx.letterSpacing = spacing ?? ctx.letterSpacing
 }
 
 const vec = class {
@@ -406,7 +407,33 @@ function ILoop(a = null, b, f) {
 	f(...arr);
 }
 
-let Icamera = { p: new vec(0, 0), v: new vec(0, 0) };
+const Icamera = new class ICamera {
+	constructor() {
+		this.p = new vec(0, 0)
+		this.v = new vec(0, 0)
+		this.range = [0, 1080]
+
+		this.target = new vec(0, 0)
+	}
+
+	run() {
+		this.v.x = (this.target.x - this.p.x - width / 2) / 3
+		this.p.x += this.v.x
+
+		this.clamp()
+	}
+
+	clamp() {
+
+		if (this.p.x < this.range[0]) { this.p.x = this.range[0] }
+		if (this.p.x > this.range[1] - width) { this.p.x = this.range[1] - width }
+
+		if (this.range[1] < width) {
+			this.p.x = (this.range[1] - width) / 2
+		}
+	}
+
+}
 
 function IcircleC(x, y, r, c, id, size) {
 	Icircle(x - Icamera.p.x, y - Icamera.p.y, r, c, id, size);

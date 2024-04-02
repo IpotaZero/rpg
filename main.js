@@ -31,7 +31,7 @@ const scene_pretitle = new class extends Scene {
 
   loop() {
     Irect(0, 0, width, height, "#121212")
-    Ifont({ size: 32, colour: "white", font: "serif", text_align: "center" })
+    Ifont({ size: 36, colour: "white", font: "Pixel", text_align: "center" })
     Itext5(this.frame * 2, width / 2, height / 2, font_size, "ゲームを遊ぶときは気分を明るくして現実から離れてみてね！<br>Press KeyZ")
 
     if (pushed.includes("ok")) {
@@ -45,7 +45,14 @@ const scene_pretitle = new class extends Scene {
 const scene_title = new class extends Scene {
   constructor() {
     super()
-    this.command = new Icommand(0, 200, 36, { "": ["New Game", "B"] }, {}, { "0": (me) => { scene_manager.move_to(scene_main) } })
+    this.command = new Icommand(48, 200, 48, { "": ["New Game", "Credit"] }, {}, {
+      "0": (me) => {
+        scene_manager.move_to(scene_main)
+      },
+      "1": (me) => {
+        Itext5(me.frame, 48, 200, font_size, "制作: お躁式ラケッツ!")
+      }
+    })
   }
 
   start() {
@@ -59,10 +66,10 @@ const scene_title = new class extends Scene {
 
   loop() {
     Irect(0, 0, width, height, "#121212")
-    Ifont({ size: 48, colour: "white", font: "serif", text_align: "left" })
-    Itext(this.frame, 50, 100, "Test Title")
+    Ifont({ size: 60, colour: "white", font: "Pixel", text_align: "left" })
+    Itext(this.frame, 48, 100, "Test Title")
 
-    Ifont({ size: 36, font: "serif" })
+    Ifont({ size: 48, font: "Pixel" })
     this.command.run()
 
     this.frame++
@@ -72,20 +79,25 @@ const scene_title = new class extends Scene {
 
 const data = {
   aqua: {
-    weapon: "モップ"
+    weapon: "モップ",
+    armor: "作業服",
+    accessory: "None",
   },
   pH: 7,
-  items: [],
   task: "保健室のプリンに話しかける",
   flag: {
-    member_num: 1,
-    meet_purine: true,
-    key_north: true
+    member_num: 4,
   },
   item_flag: {
     aqua: {
 
-    }
+    },
+    others: {
+      battle_manual: true
+    },
+  },
+  items: {
+    health: ["---"],
   }
 
 }
@@ -100,24 +112,34 @@ const scene_main = new class extends Scene {
       is_on_floor: true,
       speed: 24,
       r: 100,
-      app: [new Iimage("images/ch_aqua_right.png", 0, 390, 380, 380), new Iimage("images/ch_aqua_left.png", 0, 390, 380, 380)],
-      app_num: 0
+    }
+
+    this.characters = {
+      aqua: {
+        app: [new Iimage("images/ch_aqua_right.png", 0, 0, 380, 380), new Iimage("images/ch_aqua_left.png", 0, 0, 380, 380)],
+        p: new vec(0, 0),
+        v: new vec(0, 0),
+        direction: 0,
+      },
+      purine: {
+        app: [new Iimage("images/ch_purine_right.png", 0, 0, 380, 380), new Iimage("images/ch_purine_left.png", 0, 0, 380, 380)],
+        p: new vec(0, 0),
+        v: new vec(0, 0),
+        direction: 0,
+      },
     }
 
     this.stage = stage_classroom_0
-
-    this.ef_ex = new Iimage("images/ef_ex.png", 0, 300, 120, 120)
-
   }
 
   start() {
-
-  }
-
-  end() {
     this.player.v.y = 0
     this.player.p.y = height - this.player.r
     this.player.is_on_floor = true
+  }
+
+  end() {
+
   }
 
   loop() {
@@ -140,17 +162,17 @@ const scene_main = new class extends Scene {
   player_move() {
     //player move
     this.player.v.x = 0
-    if (pressed.includes("ArrowRight")) { this.player.v.x++; this.player.app_num = 0 }
-    if (pressed.includes("ArrowLeft")) { this.player.v.x--; this.player.app_num = 1 }
+    if (pressed.includes("ArrowRight")) { this.player.v.x++; this.characters.aqua.direction = 0 }
+    if (pressed.includes("ArrowLeft")) { this.player.v.x--; this.characters.aqua.direction = 1 }
     if (mouse.clicked && !mouse.right_clicked) {
-      if (mouse.p.x > this.player.p.x - Icamera.p.x) { this.player.v.x++; this.player.app_num = 0 }
-      if (mouse.p.x < this.player.p.x - Icamera.p.x) { this.player.v.x--; this.player.app_num = 1 }
+      if (mouse.p.x > this.player.p.x - Icamera.p.x) { this.player.v.x++; this.characters.aqua.direction = 0 }
+      if (mouse.p.x < this.player.p.x - Icamera.p.x) { this.player.v.x--; this.characters.aqua.direction = 1 }
     }
 
     //jump
     if (this.player.is_on_floor) {
       this.player.v.y = 0
-      this.player.p.y = height - this.player.r
+      this.player.p.y = this.stage.height - this.player.r
       if (pushed.includes("ArrowUp")) {
         this.player.v.y = -60
         this.player.is_on_floor = false
@@ -167,13 +189,23 @@ const scene_main = new class extends Scene {
     //clamp
     if (this.player.p.x < this.player.r) { this.player.p.x = this.player.r }
     if (this.player.p.x > this.stage.width - this.player.r) { this.player.p.x = this.stage.width - this.player.r }
-    if (this.player.p.y > height - this.player.r) { this.player.p.y = height - this.player.r; this.player.is_on_floor = true }
+    if (this.player.p.y > this.stage.height - this.player.r) { this.player.p.y = this.stage.height - this.player.r; this.player.is_on_floor = true }
 
+    //character
+    this.characters.aqua.p = this.player.p
+
+    if (Math.abs(this.characters.purine.p.x - this.characters.aqua.p.x) > 200) {
+      this.characters.purine.v.x = Math.max(Math.min((this.player.p.x - this.characters.purine.p.x) / 6, this.player.speed), -this.player.speed)
+      this.characters.purine.direction = this.characters.purine.v.x > 0 ? 0 : 1
+      this.characters.purine.p = this.characters.purine.p.add(this.characters.purine.v)
+    }
+    this.characters.purine.p.y = this.characters.aqua.p.y
+
+    Icamera.range[1] = this.stage.width
+
+    Icamera.target = this.player.p
     //camera
-    Icamera.v.x = (this.player.p.x - Icamera.p.x - width / 2) / 6
-    Icamera.p.x += Icamera.v.x
-    if (Icamera.p.x < 0) { Icamera.p.x = 0 }
-    if (Icamera.p.x > this.stage.width - width) { Icamera.p.x = this.stage.width - width }
+    Icamera.run()
   }
 
   draw_background() {
@@ -200,18 +232,28 @@ const scene_main = new class extends Scene {
     ctx.shadowOffsetY = 1;
     ctx.shadowBlur = 5;
 
-    this.stage.events.forEach((e) => {
-      e.draw()
-      if (e.is_touched()) { this.ef_ex.x = this.player.p.x; this.ef_ex.draw() }
-    })
-
-    //player
+    //chracters
     // IcircleC(this.player.p.x, this.player.p.y, this.player.r, "#c0c0c0")
     IcircleC(this.player.p.x, this.player.p.y, this.player.r, "black", "stroke", 2)
 
-    this.player.app[this.player.app_num].x = this.player.p.x - 2 * this.player.r
-    this.player.app[this.player.app_num].y = this.player.p.y - 2 * this.player.r - 20
-    this.player.app[this.player.app_num].draw()
+    if (data.flag.member_num >= 2) {
+      const purine = this.characters.purine.app[this.characters.purine.direction]
+      purine.x = this.characters.purine.p.x - 2 * this.player.r
+      purine.y = this.characters.purine.p.y - 2 * this.player.r - 30
+      purine.draw()
+    }
+
+    const aqua = this.characters.aqua.app[this.characters.aqua.direction]
+    aqua.x = this.characters.aqua.p.x - 2 * this.player.r
+    aqua.y = this.characters.aqua.p.y - 2 * this.player.r - 30
+    aqua.draw()
+
+    this.stage.events.forEach((e) => {
+      e.draw()
+      if (e.is_touched()) {
+
+      }
+    })
 
     ctx.restore();
 
@@ -219,7 +261,7 @@ const scene_main = new class extends Scene {
 
   draw_meta() {
     Irect(0, 10, 600, 120, "#c0c0c0c0")
-    Ifont({ size: 32, colour: "black" })
+    Ifont({ size: 32, colour: "black", font: "Pixel" })
     Itext4(null, 0, 50, font_size, [this.stage.name, "タスク: " + data.task, "x: " + this.player.p.x])
   }
 }()
@@ -253,23 +295,42 @@ const scene_menu = new class extends Scene {
   constructor() {
     super()
 
-    this.command = new Icommand(40, 60, 24, { "": ["アクア"], ".": ["そうび"] },
+    this.command = new Icommand(40, 60, 24, { "": ["アイテム", "そうび", "つよさ", "アルゴリズム"], "0": ["しょうもうひん", "ちょうきほぞんりょういき"], "[1-3]": ["アクア", "プリン", "アモン", "シトリ"] },
       {
-        ".0.": (me) => {
+        ".0": (me) => {
           console.log(me.current_branch + me.current_value)
-        }
+        },
       },
       {
         "": (me) => {
           if (pushed.includes("cancel")) {
             scene_manager.move_to(scene_main)
           }
-        }
+        },
+        "01.": (me) => {
+          switch (me.current_branch[2]) {
+            case "0":
+              Itext(me.frame, 40, 60, "たたかいのマニュアル")
+              break
+          }
+        },
+        "1..": (me) => {
+          Itext(me.frame, 40, 60, "をそうびした")
+        },
       })
   }
 
   start() {
-    this.command.option[".0"] = ["---"]
+    this.command.option["00"] = data.items.health
+    this.command.option["01"] = Igenerator(function* () {
+      for (let key in data.item_flag.others) {
+        if (data.item_flag.others[key]) {
+          yield key
+        } else {
+          yield "---"
+        }
+      }
+    })
 
   }
 
@@ -278,22 +339,20 @@ const scene_menu = new class extends Scene {
 
     this.draw()
 
-    Ifont({ size: 24, colour: "#c0c0c0", font: "serif", text_align: "left" })
+    Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "left" })
     this.command.run()
 
   }
 
   draw() {
     scene_main.draw_background()
-    scene_main.draw_characters()
     scene_main.draw_front()
     Irect(0, 0, width, height, "#00000080")
 
     //blackboard
     Irect(20, 20, width - 40, 160, "#121212")
-    Irect(20, 20, 640, 160, "#c0c0c0", "stroke", 12)
-    Irect(660, 20, 400, 160, "#c0c0c0", "stroke", 12)
-
+    Irect(20, 20, 520, 160, "#c0c0c0", "stroke", 12)
+    Irect(540, 20, 520, 160, "#c0c0c0", "stroke", 12)
   }
 }()
 
@@ -333,7 +392,7 @@ const scene_battle = new class extends Scene {
 
     this.frame = 0
 
-    this.command = new Icommand(30, 60, 24, { "": ["たたかう", "にげる"], "0": ["アクア", "プリン", "アモン", "シトリ"], "0.": ["こうげき", "アルゴリズム", "アイテム"] },
+    this.command = new Icommand(30, 64, 28, { "": ["たたかう", "にげる"], "0": ["アクア", "プリン", "アモン", "シトリ"], "0.": ["こうげき", "アルゴリズム", "アイテム"] },
       {
         "": (me) => {
           if (me.current_value == 1) {
@@ -357,19 +416,19 @@ const scene_battle = new class extends Scene {
           me.current_value = 0
         },
         "0.*": (me) => {
-          Irect(220, 40, 120, 24, "black")
-          Irect(220, 40, 120 * (this.aqua.meter / 100), 24, "#c0c0c0")
+          Irect(240, 40, 120, 24, "black")
+          Irect(240, 40, 120 * (this.aqua.meter / 100), 24, "#c0c0c0")
 
-          Irect(360, 40, 120, 24, "black")
-          Irect(360, 40, 120 * (this.aqua.draw_hp / this.aqua.max_hp), 24, "#804080")
-          Irect(360, 40, 120 * (this.aqua.hp / this.aqua.max_hp), 24, "#ff4040")
-          Ifont({ size: 24, colour: "#c0c0c0", font: "serif", text_align: "center" })
-          Itext(null, 420, 40 + font_size - 4, this.aqua.draw_hp + "/" + this.aqua.max_hp)
+          Irect(380, 40, 120, 24, "black")
+          Irect(380, 40, 120 * (this.aqua.draw_hp / this.aqua.max_hp), 24, "#804080")
+          Irect(380, 40, 120 * (this.aqua.hp / this.aqua.max_hp), 24, "#ff4040")
+          Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "center" })
+          Itext(null, 440, 40 + font_size - 4, this.aqua.draw_hp + "/" + this.aqua.max_hp)
 
-          Irect(500, 40, 120, 24, "black")
-          Irect(500, 40, 120 * (this.aqua.token / this.aqua.max_token), 24, "#4040ff")
-          Ifont({ size: 24, colour: "#c0c0c0", font: "serif", text_align: "center" })
-          Itext(null, 560, 40 + font_size - 4, this.aqua.token + "/" + this.aqua.max_token)
+          Irect(520, 40, 120, 24, "black")
+          Irect(520, 40, 120 * (this.aqua.token / this.aqua.max_token), 24, "#4040ff")
+          Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "center" })
+          Itext(null, 580, 40 + font_size - 4, this.aqua.token + "/" + this.aqua.max_token)
         },
 
       }
@@ -409,7 +468,7 @@ const scene_battle = new class extends Scene {
 
     this.draw()
 
-    Ifont({ size: 24, colour: "#c0c0c0", font: "serif" })
+    Ifont({ size: 28, colour: "#c0c0c0", font: "Pixel" })
     this.command.run()
 
     if (this.enemy.hp <= 0) {
@@ -452,7 +511,7 @@ const scene_battle = new class extends Scene {
     Irect(20, 20, 640, 160, "#c0c0c0", "stroke", 12)
     Irect(660, 20, 400, 160, "#c0c0c0", "stroke", 12)
 
-    Ifont({ size: 24, colour: "#c0c0c0", font: "serif", text_align: "left" })
+    Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "left" })
     Itext4(null, 670, 60, font_size, this.log)
 
 
