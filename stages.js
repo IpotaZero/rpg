@@ -93,8 +93,10 @@ const Event_Move = class extends Event {
 
                 Icamera.p.x = scene_main.player.p.x - width / 2
                 Icamera.clamp()
-                scene_main.characters.purine.p = scene_main.player.p
 
+                scene_main.characters.forEach(c => {
+                    c.p = scene_main.player.p
+                })
 
                 this.end()
             })
@@ -118,6 +120,9 @@ const Event_Conversation = class extends Event {
             scene_event.event = this
             scene_manager.move_to(scene_event)
             scene_main.player.p.y = height - scene_main.player.r
+
+            scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+
         }
 
     }
@@ -132,7 +137,7 @@ const Event_Conversation = class extends Event {
         Irect(20, 20, width - 40, 320, "#c0c0c0", "stroke", 12)
 
         Ifont({ size: 48, colour: "#c0c0c0", font: "Pixel" })
-        Itext5(this.frame / 1.4, 40, 80, font_size, Iadjust(width - 120, this.text[this.text_num]))
+        Itext5(this.frame / 1.4, 35, 80, font_size, Iadjust(width - 120, this.text[this.text_num]))
 
         if (pushed.includes("ok") || pushed.includes("cancel")) {
             if (this.text[this.text_num].length > this.frame / 1.4) {
@@ -221,7 +226,7 @@ const Event_Enemy = class extends Event {
         if (this.is_touched() && this.cooldown == 0) {
             this.cooldown = 60
 
-            scene_dark.run("curtain", 36, scene_battle, null, () => {
+            scene_dark.run("curtain", 24, scene_battle, null, () => {
                 ctx.globalAlpha = 0.4
                 Irect(0, 0, width, height, "#400040")
                 ctx.globalAlpha = 1
@@ -378,7 +383,7 @@ const stage_health_room = new Stage("保健室", 2160, {
         new Event_Conversation(null, null, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
             ["プリン: あら、アクア どうしたの？", "プリン: なんでお仕事してるか分からなくなったって？", "プリン: ......そういえばあたしも何でお仕事してるんだっけ？", "プリン: 今日はもう上がっていろんな人と話してみたら？", "プリン: あたしもついていくわ！", "プリンが仲間になった"]
         ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2 }),
-        new Event_Conversation(null, null, null, ["ぬくもり"]),
+        new Event_Conversation(null, null, null, ["やさしさ"]),
     ], () => data.flag.member_num >= 2 ? 1 : 0),
 
 

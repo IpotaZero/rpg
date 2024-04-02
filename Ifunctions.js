@@ -502,8 +502,6 @@ const Icommand = class {
 				//押したときなんかなります
 				Iget(this.start, this.current_branch)?.(this)
 
-				// Sound_Data.ok.play()
-
 				this.current_branch += this.current_value
 				this.frame = 0
 				this.current_value = 0
@@ -516,13 +514,17 @@ const Icommand = class {
 
 
 		if (this.cancel && this.current_branch != "") {
-			this.current_value = Number(this.current_branch.charAt(this.current_branch.length - 1))
-			this.current_branch = this.current_branch.slice(0, -1)
-			this.frame = 0
+			this.back(1)
 		}
 
 		this.frame++
 
+	}
+
+	back(layer) {
+		this.current_value = Number(this.current_branch.charAt(this.current_branch.length - layer))
+		this.current_branch = this.current_branch.slice(0, -layer)
+		this.frame = 0
 	}
 }
 
