@@ -34,13 +34,13 @@ const Actor = class {
 
 const after_school_polyturner = new class extends Actor {
   constructor() {
-    super(20, 0, 8, 4, 4)
+    super(20, 0, 8, 4, 1)
     this.name = "放課後ポリターナー"
     this.reset()
   }
 
   action(character) {
-    const damage = Math.ceil(this.attack / 2 - character.deffence / 4)
+    const damage = Math.ceil((this.attack / 2 - character.deffence / 4) * (1 + Math.random() / 2))
 
     character.hp = Math.max(character.draw_hp - damage, 0)
 

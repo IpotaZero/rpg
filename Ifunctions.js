@@ -464,26 +464,97 @@ function IimageC(image, x, y, width, height) {
 }
 
 const Icommand = class {
-	constructor(x, y, line_space, option, start, loop) {
-		this.x = x
-		this.y = y
-		this.line_space = line_space
-		this.option = option
-		this.start = start
+	constructor(contents, loop) {
+		this.contents = contents
 		this.loop = loop
 
 		this.reset()
 	}
 
+	static option = class {
+		constructor(x, y, options) {
+			this.x = x
+			this.y = y
+			this.options = options
+
+			this.selectable = Igenerator(function* () { for (let i of options) { yield true } })
+
+			this.current_value = 0
+
+			this.frame = 0
+		}
+
+		reset() {
+			this.frame = 0
+			this.current_value = 0
+		}
+
+		run(command) {
+			Itext4(this.frame * 2, this.x + font_size, this.y, font_size, this.options)
+			Itext(this.frame, this.x, this.y + font_size * this.current_value, "→")
+
+			if (pushed.includes("ArrowDown")) { this.current_value++; /*Sound_Data.select.play()*/ }
+			if (pushed.includes("ArrowUp")) { this.current_value--; /*Sound_Data.select.play()*/ }
+			this.current_value = (this.current_value + this.options.length) % this.options.length
+
+			this.frame++
+
+			if (pushed.includes("ok") && this.selectable[this.current_value]) {
+				this.frame = 0
+				// Sound_Data.ok.play()
+
+				return this.current_value
+			}
+		}
+	}
+
+	static text = class {
+		constructor(x, y, text) {
+			this.x = x
+			this.y = y
+			this.text = text
+
+			this.frame = 0
+		}
+
+		reset() {
+			this.frame = 0
+		}
+
+		run(command) {
+			Itext5(this.frame * 2, this.x + font_size, this.y, font_size, this.text)
+			this.frame++
+		}
+	}
+
+	static do = class {
+		constructor(fun) {
+			this.fun = fun
+		}
+
+		reset() {
+			this.frame = 0
+		}
+
+		run(command) {
+			this.fun(command)
+			this.frame++
+		}
+	}
+
 	reset() {
 		this.current_branch = ""
-		this.current_value = 0
 		this.cancel = false
 		this.frame = 0
+
+		for (let key in this.contents) {
+			this.contents[key].reset()
+		}
+
 	}
 
 	run() {
-		const option = Iget(this.option, this.current_branch)
+		const content = Iget(this.contents, this.current_branch)
 
 		this.cancel = false
 		if (pushed.includes("cancel")) {
@@ -491,33 +562,20 @@ const Icommand = class {
 			// Sound_Data.cancel.play()
 		}
 
-		if (option != null) {
-			Itext4(this.frame * 2, this.x + this.line_space, this.y, this.line_space, option)
-			Itext(this.frame, this.x, this.y + this.line_space * this.current_value, "→")
+		const result = content?.run(this)
 
-			if (pushed.includes("ArrowDown")) { this.current_value++; /*Sound_Data.select.play()*/ }
-			if (pushed.includes("ArrowUp")) { this.current_value--; /*Sound_Data.select.play()*/ }
-			this.current_value = (this.current_value + option.length) % option.length
-			if (pushed.includes("ok")) {
-				//押したときなんかなります
-				Iget(this.start, this.current_branch)?.(this)
+		if (result != null) {
+			this.current_branch += result
 
-				this.current_branch += this.current_value
-				this.frame = 0
-				this.current_value = 0
-				// Sound_Data.ok.play()
-			}
+			return
 		}
 
 		//ずっとなんかなります
 		Iget(this.loop, this.current_branch)?.(this)
 
-
 		if (this.cancel && this.current_branch != "") {
 			this.back(1)
 		}
-
-		this.frame++
 
 	}
 

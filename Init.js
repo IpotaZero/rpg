@@ -77,4 +77,4 @@ let gamepad_connected = false
 console.log("Init.js is loaded");
 
 Ifont({ size: 48, colour: "white", font: "serif", text_align: "right" })
-Itext(null, width, height, "なうろーでぃんぐ...")
+Itext(null, width, height - 20, "なうろーでぃんぐ......")

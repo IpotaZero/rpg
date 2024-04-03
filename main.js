@@ -45,13 +45,11 @@ const scene_pretitle = new class extends Scene {
 const scene_title = new class extends Scene {
   constructor() {
     super()
-    this.command = new Icommand(48, 200, 48, { "": ["New Game", "Credit"] }, {}, {
-      "0": (me) => {
-        scene_manager.move_to(scene_main)
-      },
-      "1": (me) => {
-        Itext5(me.frame, 48, 200, font_size, "制作: お躁式ラケッツ!")
-      }
+    this.command = new Icommand({
+      "": new Icommand.option(48, 200, ["New Game", "Manual", "Credit"]),
+      "0": new Icommand.do((me) => { scene_manager.move_to(scene_main) }),
+      "1": new Icommand.text(48, 200, "左右キーで移動 上キーでジャンプ<br>Shiftキーでダッシュ<br>Zで決定 Xでキャンセル・メニュー"),
+      "2": new Icommand.text(48, 200, "制作: お躁式ラケッツ!"),
     })
   }
 
@@ -78,11 +76,13 @@ const scene_title = new class extends Scene {
 }()
 
 const data = {
-  aqua: {
-    weapon: "モップ",
-    armor: "作業服",
-    accessory: "None",
-  },
+  status: [
+    {
+      max_hp: 20,
+      max_token: 0,
+
+    }
+  ],
   pH: 7,
   task: "保健室のプリンに話しかける",
   flag: {
@@ -116,24 +116,28 @@ const scene_main = new class extends Scene {
 
     this.characters_data = [
       {
+        name: "aqua",
         app: [new Iimage("images/ch_aqua_right.png", 0, 0, 380, 380), new Iimage("images/ch_aqua_left.png", 0, 0, 380, 380)],
         p: new vec(0, 0),
         v: new vec(0, 0),
         direction: 0,
       },
       {
+        name: "purine",
         app: [new Iimage("images/ch_purine_right.png", 0, 0, 380, 380), new Iimage("images/ch_purine_left.png", 0, 0, 380, 380)],
         p: new vec(0, 0),
         v: new vec(0, 0),
         direction: 0,
       },
       {
+        name: "ammon",
         app: [new Iimage("images/ch_ammon_right.png", 0, 0, 380, 380), new Iimage("images/ch_ammon_left.png", 0, 0, 380, 380)],
         p: new vec(0, 0),
         v: new vec(0, 0),
         direction: 0,
       },
       {
+        name: "citri",
         app: [new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), new Iimage("images/ch_citri_left.png", 0, 0, 380, 380)],
         p: new vec(0, 0),
         v: new vec(0, 0),
@@ -151,6 +155,11 @@ const scene_main = new class extends Scene {
     this.player.is_on_floor = true
 
     this.characters = this.characters_data.slice(0, data.flag.member_num)
+
+    // this.characters.forEach(c => { c.p = this.player.p })
+
+    if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.name)) } else
+      if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
   }
 
   end() {
@@ -331,12 +340,16 @@ const scene_menu = new class extends Scene {
         "1..": (me) => {
           Itext(me.frame, 40, 60, "をそうびした")
         },
+        "2.": (me) => {
+
+          me.current_branch[1]
+        },
       })
   }
 
   start() {
-    this.command.option["00"] = data.items.health
-    this.command.option["01"] = Igenerator(function* () {
+    this.command.contents["00"] = data.items.health
+    this.command.contents["01"] = Igenerator(function* () {
       for (let key in data.item_flag.others) {
         if (data.item_flag.others[key]) {
           yield key
@@ -377,23 +390,13 @@ const scene_battle = new class extends Scene {
     //house dust
     this.circle = Igenerator(function* () { for (let i = 0; i < 12; i++) { yield { life: 120 * Math.random(), p: new vec(Math.random() * width, Math.random() * height) } } })
 
-    this.command = new Icommand(30, 64, 28, { "": ["たたかう", "にげる"], "0": ["アクア", "プリン", "アモン", "シトリ"], "0.": ["こうげき", "アルゴリズム", "アイテム"] },
+    this.command = new Icommand(
       {
-        "": (me) => {
-          if (me.current_value == 1) {
-            scene_manager.move_to(scene_main)
-          }
-        },
-        "0": (me) => {
-          const c = this.characters[me.current_value]
-          if (c.meter < this.max_meter || c.is_dead) {
-            me.cancel = true
-          }
-        }
-      },
-      {
-        "0.0": (me) => {
-          const character = this.characters[me.current_branch[1]]
+        "": new Icommand.option(30, 64, ["たたかう", "にげる"]),
+        "0": new Icommand.option(30, 64, ["アクア", "プリン", "アモン", "シトリ"]),
+        "0.": new Icommand.option(30, 64, ["こうげき", "アルゴリズム", "アイテム"]),
+        "0.0": new Icommand.do((command) => {
+          const character = this.characters[command.current_branch[1]]
           const damage = Math.ceil(character.attack / 2 - this.enemy.deffence / 4)
 
           this.enemy.hp = Math.max(this.enemy.hp - damage, 0)
@@ -401,16 +404,19 @@ const scene_battle = new class extends Scene {
 
           this.log.push(character.name + "のこうげき", this.enemy.name + "に" + damage + "のダメージ")
 
-          me.back(2)
-        },
+          command.back(2)
+        }),
+
+
+        "1": new Icommand.do((me) => { scene_manager.move_to(scene_main) }),
+
+      },
+      {
         "0.*": (me) => {
           this.characters.forEach((c, i) => {
             Irect(240, 40 + (font_size + 6) * i, 120, 24, "black")
-            if (c.meter < this.max_meter) {
-              Irect(240, 40 + (font_size + 6) * i, 120 * (c.meter / this.max_meter), 24, "#c0c0c0")
-            } else {
-              Irect(240, 40 + (font_size + 6) * i, 120, 24, "#80ff80")
-            }
+            if (c.meter < this.max_meter) { Irect(240, 40 + (font_size + 6) * i, 120 * (c.meter / this.max_meter), 24, "#c0c0c0") }
+            else { Irect(240, 40 + (font_size + 6) * i, 120, 24, "#80ff80") }
 
             Irect(380, 40 + (font_size + 6) * i, 120, 24, "black")
             Irect(380, 40 + (font_size + 6) * i, 120 * (c.draw_hp / c.max_hp), 24, "#804080")
@@ -424,21 +430,20 @@ const scene_battle = new class extends Scene {
             Itext(null, 580, 40 + (font_size + 6) * i + font_size - 4, c.token + "/" + c.max_token)
           })
         },
-
       }
     )
   }
 
   start() {
-    this.characters = this.characters = [
+    this.characters = [
       {
         name: "アクア",
-        app: new Iimage("images/ch_aqua_right.png", 330, 400, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_aqua_right.png", 330, 390, 380, 380, { camera: false }),
 
         max_hp: 20,
         max_token: 20,
-        speed: 1,
-        attack: 4,
+        speed: 2,
+        attack: 8,
         deffence: 4,
 
         draw_hp: 20,
@@ -450,7 +455,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "プリン",
-        app: new Iimage("images/ch_purine_right.png", 190, 400, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_purine_right.png", 190, 390, 380, 380, { camera: false }),
 
         max_hp: 20,
         max_token: 20,
@@ -499,19 +504,24 @@ const scene_battle = new class extends Scene {
 
         is_dead: false,
       },
-    ]
+    ].slice(0, data.flag.member_num)
+
+    this.command.contents["0"].options = ["アクア", "プリン", "アモン", "シトリ"].slice(0, data.flag.member_num)
 
     this.enemy = after_school_polyturner
-
     this.enemy.reset()
+
+    //speed check
+    let num = 1
+    let sum = this.enemy.speed
+    this.characters.forEach(c => { sum += c.speed; num++ })
+    this.max_meter = Math.floor(sum * 50)
 
     this.frame = 0
 
-    this.max_meter = 400
-
     this.enemy.max_meter = this.max_meter
 
-    this.log = ["ウイルスがあらわれた！"]
+    this.log = [this.enemy.name + "があらわれた"]
 
     this.command.reset()
     BGM = new Iaudio("audios/Liar.wav", "bgm")
@@ -524,10 +534,12 @@ const scene_battle = new class extends Scene {
   }
 
   player_action() {
-    this.characters.forEach(c => {
+    this.characters.forEach((c, i) => {
       if (c.is_dead) { return }
 
       c.meter = Math.min(c.meter + c.speed, this.max_meter)
+
+      this.command.contents["0"].selectable[i] = c.meter == this.max_meter ? true : false
 
       if (this.frame % 4 == 0) {
         c.draw_hp += Math.sign(c.hp - c.draw_hp)
@@ -549,11 +561,10 @@ const scene_battle = new class extends Scene {
     this.enemy.meter = Math.min(this.enemy.meter + this.enemy.speed, this.max_meter)
 
     if (this.enemy.meter == this.max_meter) {
-      const log = this.enemy.action(this.characters[Math.floor(Math.random() * data.flag.member_num)])
+      const log = this.enemy.action(this.characters.filter(c => !c.is_dead)[Math.floor(Math.random() * data.flag.member_num)])
 
       this.log.push(...log)
     }
-
 
   }
 
@@ -562,7 +573,7 @@ const scene_battle = new class extends Scene {
 
     this.player_action()
 
-    if (this.enemy.hp <= 0) { scene_manager.move_to(scene_main) }
+    if (this.enemy.hp <= 0) { scene_manager.move_to(scene_win) }
 
     this.enemy_action()
 
@@ -611,11 +622,10 @@ const scene_dark = new class extends Scene {
   constructor() {
     super()
   }
-  run(type, time, to, what, add) {
+  run(type, time, to, add) {
     this.type = type
     this.time = time
     this.to = to
-    this.what = what
     this.add = add
     scene_manager.move_to(this)
   }
@@ -628,11 +638,7 @@ const scene_dark = new class extends Scene {
     scene_main.draw_background()
     scene_main.draw_front()
 
-    if (this.frame == this.time / 2) {
-      this.what?.()
-    } else if (this.frame > this.time / 2) {
-      this.add?.()
-    }
+    this.add?.(this.frame)
 
     if (this.frame == this.time) {
       scene_manager.move_to(this.to)
@@ -653,6 +659,35 @@ const scene_dark = new class extends Scene {
     this.frame++
 
   }
+}()
+
+const scene_win = new class extends Scene {
+  constructor() {
+    super()
+  }
+
+  start() {
+    this.frame = 0
+  }
+
+  loop() {
+    scene_battle.draw()
+
+    Itext(this.frame, 30, 64, "敵を浄化した")
+
+    if (pushed.includes("ok")) {
+      scene_dark.run("curtain", 24, scene_main, (frame) => {
+        if (frame < 12) {
+          ctx.globalAlpha = 0.4
+          Irect(0, 0, width, height, "#400040")
+          ctx.globalAlpha = 1
+        }
+      })
+    }
+
+    this.frame++
+  }
+
 }()
 
 const scene_manager = new class {
