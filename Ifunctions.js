@@ -76,7 +76,8 @@ const Iaudio = class {
 	}
 
 	fadeout(frame, time) {
-		this.audio.volume = Math.min(this.volume / 12 * config.data.volume_bgm, 1) * (1 - frame / time)
+		const f = Math.min(frame, time)
+		this.audio.volume = Math.min(this.volume, 1) * (1 - f / time)
 	}
 
 	end() {
@@ -566,8 +567,6 @@ const Icommand = class {
 
 		if (result != null) {
 			this.current_branch += result
-
-			return
 		}
 
 		//ずっとなんかなります
@@ -608,6 +607,10 @@ function Igenerator(generator) {
 	}
 
 	return list
+}
+
+const Irandom = (array) => {
+	return array[Math.floor(Math.random() * array.length)]
 }
 
 console.log("Ifunctions.js is loaded");

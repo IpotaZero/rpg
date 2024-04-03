@@ -146,7 +146,7 @@ const scene_main = new class extends Scene {
     ]
 
 
-    this.stage = stage_classroom_0
+    this.stage = S.stage_classroom_0
   }
 
   start() {
@@ -158,8 +158,8 @@ const scene_main = new class extends Scene {
 
     // this.characters.forEach(c => { c.p = this.player.p })
 
-    if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.name)) } else
-      if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
+    if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.name)) }
+    else if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
   }
 
   end() {
@@ -283,9 +283,9 @@ const scene_main = new class extends Scene {
   }
 
   draw_meta() {
-    Irect(0, 10, 600, 120, "#c0c0c0c0")
+    Irect(0, 10, 600, 150, "#c0c0c0c0")
     Ifont({ size: 32, colour: "black", font: "Pixel" })
-    Itext4(null, 0, 50, font_size, [this.stage.name, "タスク: " + data.task, "x: " + this.player.p.x])
+    Itext4(null, 0, 50, font_size, [this.stage.name, "タスク: " + data.task, "x: " + this.player.p.x/*, "memory: " + performance.memory.usedJSHeapSize*/])
   }
 }()
 
@@ -408,7 +408,10 @@ const scene_battle = new class extends Scene {
         }),
 
 
-        "1": new Icommand.do((me) => { scene_manager.move_to(scene_main) }),
+        "1": new Icommand.do((me) => {
+          BGM.pause()
+          scene_manager.move_to(scene_main)
+        }),
 
       },
       {
@@ -530,7 +533,7 @@ const scene_battle = new class extends Scene {
   }
 
   end() {
-    BGM.pause()
+    // BGM.pause()
   }
 
   player_action() {
@@ -561,7 +564,7 @@ const scene_battle = new class extends Scene {
     this.enemy.meter = Math.min(this.enemy.meter + this.enemy.speed, this.max_meter)
 
     if (this.enemy.meter == this.max_meter) {
-      const log = this.enemy.action(this.characters.filter(c => !c.is_dead)[Math.floor(Math.random() * data.flag.member_num)])
+      const log = this.enemy.action(Irandom(this.characters.filter(c => !c.is_dead)))
 
       this.log.push(...log)
     }
@@ -668,21 +671,36 @@ const scene_win = new class extends Scene {
 
   start() {
     this.frame = 0
+
+    this.phase = 0
+
+    scene_battle.log.push("敵を浄化した")
+    scene_battle.log.shift()
   }
 
   loop() {
+    BGM.fadeout(this.frame, 24)
+
     scene_battle.draw()
 
-    Itext(this.frame, 30, 64, "敵を浄化した")
-
     if (pushed.includes("ok")) {
-      scene_dark.run("curtain", 24, scene_main, (frame) => {
-        if (frame < 12) {
-          ctx.globalAlpha = 0.4
-          Irect(0, 0, width, height, "#400040")
-          ctx.globalAlpha = 1
-        }
-      })
+      switch (this.phase) {
+        case 0:
+          scene_battle.log.push("---クレジットを得た")
+          break
+        case 1:
+          scene_dark.run("curtain", 24, scene_main, (frame) => {
+            if (frame < 12) {
+              ctx.globalAlpha = 0.4
+              Irect(0, 0, width, height, "#400040")
+              ctx.globalAlpha = 1
+            }
+          })
+          break
+      }
+
+      this.phase++
+
     }
 
     this.frame++
