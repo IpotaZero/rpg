@@ -59,7 +59,7 @@ const scene_title = new class extends Scene {
   }
 
   end() {
-
+    // play_bgm("audios/bells.wav")
   }
 
   loop() {
@@ -74,33 +74,6 @@ const scene_title = new class extends Scene {
   }
 
 }()
-
-const data = {
-  status: [
-    {
-      max_hp: 20,
-      max_token: 0,
-
-    }
-  ],
-  pH: 7,
-  task: "保健室のプリンに話しかける",
-  flag: {
-    member_num: 4,
-  },
-  item_flag: {
-    aqua: {
-
-    },
-    others: {
-      battle_manual: true
-    },
-  },
-  items: {
-    health: ["---"],
-  }
-
-}
 
 const scene_main = new class extends Scene {
   constructor() {
@@ -146,7 +119,7 @@ const scene_main = new class extends Scene {
     ]
 
 
-    this.stage = S.stage_classroom_0
+    this.stage = S.classroom_0
   }
 
   start() {
@@ -160,6 +133,7 @@ const scene_main = new class extends Scene {
 
     if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.name)) }
     else if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
+
   }
 
   end() {
@@ -217,7 +191,9 @@ const scene_main = new class extends Scene {
 
     //character
     this.characters.forEach((c, i) => {
-      if (i == 0) { c.p = this.player.p } else {
+      if (i == 0) {
+        c.p = this.player.p
+      } else {
         if (Math.abs(c.p.x - this.player.p.x) > 180 * i) {
           c.v.x = Math.sign(this.player.p.x - c.p.x) * this.player.speed
           c.direction = c.v.x > 0 ? 0 : 1
@@ -226,8 +202,6 @@ const scene_main = new class extends Scene {
         c.p.y = this.player.p.y
       }
     })
-
-
 
     Icamera.range[1] = this.stage.width
 
@@ -250,6 +224,22 @@ const scene_main = new class extends Scene {
 
   draw_front() {
     this.stage.backgrounds.front?.forEach(i => { i.draw() })
+
+    if (this.stage.shadow.length > 0) {
+      ctx.fillStyle = "#000000c0"
+
+      for (let shadow of this.stage.shadow) {
+        ctx.beginPath()
+
+        for (let p of shadow) {
+          ctx.lineTo(p.x - Icamera.p.x, p.y - Icamera.p.y)
+          // console.log(p)}
+        }
+        ctx.closePath()
+        ctx.fill()
+
+      }
+    }
   }
 
   draw_characters() {
@@ -273,9 +263,6 @@ const scene_main = new class extends Scene {
 
     this.stage.events.forEach((e) => {
       e.draw()
-      if (e.is_touched()) {
-
-      }
     })
 
     ctx.restore();
@@ -318,11 +305,14 @@ const scene_menu = new class extends Scene {
   constructor() {
     super()
 
-    this.command = new Icommand(40, 60, 24, { "": ["アイテム", "そうび", "つよさ", "アルゴリズム"], "0": ["しょうもうひん", "ちょうきほぞんりょういき"], "[1-3]": ["アクア", "プリン", "アモン", "シトリ"] },
+    this.command = new Icommand(
       {
-        ".0": (me) => {
-          console.log(me.current_branch + me.current_value)
-        },
+        "": new Icommand.option(40, 60, ["アイテム", "そうび", "つよさ", "アルゴリズム"]),
+        "0": new Icommand.option(40, 60, ["しょうもうひん", "ちょうきほぞんりょういき"]),
+        "[1-3]": new Icommand.option(40, 60, ["アクア", "プリン", "アモン", "シトリ"]),
+        ".0": new Icommand.do((me) => {
+          console.log(me.current_branch)
+        })
       },
       {
         "": (me) => {
@@ -340,24 +330,20 @@ const scene_menu = new class extends Scene {
         "1..": (me) => {
           Itext(me.frame, 40, 60, "をそうびした")
         },
-        "2.": (me) => {
-
-          me.current_branch[1]
-        },
       })
   }
 
   start() {
-    this.command.contents["00"] = data.items.health
-    this.command.contents["01"] = Igenerator(function* () {
-      for (let key in data.item_flag.others) {
-        if (data.item_flag.others[key]) {
-          yield key
-        } else {
-          yield "---"
-        }
-      }
-    })
+    // this.command.contents["00"] = new Icommand.option(data.items.health)
+    // this.command.contents["01"] = new Icommand.option(Igenerator(function* () {
+    //   for (let key in data.item_flag.others) {
+    //     if (data.item_flag.others[key]) {
+    //       yield key
+    //     } else {
+    //       yield "---"
+    //     }
+    //   }
+    // }))
 
   }
 
@@ -409,7 +395,7 @@ const scene_battle = new class extends Scene {
 
 
         "1": new Icommand.do((me) => {
-          BGM.pause()
+          BGM.stop()
           scene_manager.move_to(scene_main)
         }),
 
@@ -527,13 +513,14 @@ const scene_battle = new class extends Scene {
     this.log = [this.enemy.name + "があらわれた"]
 
     this.command.reset()
-    BGM = new Iaudio("audios/Liar.wav", "bgm")
-    BGM.volume = 1 / 3
-    BGM.play()
+
+    BGM?.stop()
+    play_bgm("audios/Liar.wav")
   }
 
   end() {
-    // BGM.pause()
+    BGM.stop()
+    // play_bgm("audios/bells.wav")
   }
 
   player_action() {
@@ -550,6 +537,7 @@ const scene_battle = new class extends Scene {
         if (c.draw_hp <= 0) {
           c.is_dead = true
           c.meter = 0
+          this.command.contents["0"].selectable[i] = false
           this.log.push(c.name + "はスリープモードにおちい", "った")
         }
       }
@@ -657,6 +645,9 @@ const scene_dark = new class extends Scene {
       case "curtain":
         Irect(0, height * (Math.sin(Math.PI * this.frame / this.time) - 1), width, height, "black")
         break
+      case "fall":
+        Irect(0, height * 2 * (-Math.cos(Math.PI * this.frame / this.time) / 2), width, height, "black")
+        break
     }
 
     this.frame++
@@ -679,7 +670,7 @@ const scene_win = new class extends Scene {
   }
 
   loop() {
-    BGM.fadeout(this.frame, 24)
+    // BGM.fadeout(this.frame, 24)
 
     scene_battle.draw()
 
@@ -787,3 +778,6 @@ const gamepad_translate = () => {
 
   }
 }
+
+
+

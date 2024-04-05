@@ -36,61 +36,6 @@ const LocalStorage = class {
 	}
 }
 
-const Iaudio = class {
-	constructor(path, type = "se") {
-		this.audio = new Audio(path)
-		this.type = type
-
-		this.ended = false
-
-		this.volume = 1
-	}
-	play() {
-		if (this.ended) { return }
-
-		if (this.type == "se") {
-			this.audio.currentTime = 0
-			this.audio.muted = Sound_Data.mute_se
-			this.audio.volume = this.volume
-		} else if (this.type == "bgm") {
-			this.audio.loop = true
-			this.audio.muted = Sound_Data.mute_bgm
-			this.audio.volume = this.volume
-
-		}
-
-		this.audio.play()
-	}
-
-	pause() {
-		this.audio.pause()
-	}
-
-	reset() {
-		this.audio.currentTime = 0
-		this.ended = false
-	}
-
-	mute() {
-		this.audio.muted = !this.audio.muted
-	}
-
-	fadeout(frame, time) {
-		const f = Math.min(frame, time)
-		this.audio.volume = Math.min(this.volume, 1) * (1 - f / time)
-	}
-
-	end() {
-		this.audio.loop = false
-		this.ended = !this.ended
-	}
-
-	set(key, value) {
-		this[key] = value
-		return this
-	}
-}
-
 const Iimage = class {
 	constructor(path, x = 0, y = 0, width, height, { ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0, repeat_x = 1, repeat_y = 1, camera = true } = {}) {
 		let p = path.split(".")
@@ -165,9 +110,9 @@ const Iimage = class {
 }
 
 
-Sound_Data.ok = new Iaudio("audios/ok.wav")
-Sound_Data.cancel = new Iaudio("audios/cancel.wav")
-Sound_Data.select = new Iaudio("audios/select.wav")
+Sound_Data.ok = new Audio("audios/ok.wav")
+Sound_Data.cancel = new Audio("audios/cancel.wav")
+Sound_Data.select = new Audio("audios/select.wav")
 
 const Image_Data = {};
 
@@ -563,6 +508,7 @@ const Icommand = class {
 			// Sound_Data.cancel.play()
 		}
 
+		// console.log(content)
 		const result = content?.run(this)
 
 		if (result != null) {

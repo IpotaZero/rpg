@@ -74,6 +74,19 @@ let font_size = 24;
 
 let gamepad_connected = false
 
+const audioContext = new AudioContext();
+
+const play_bgm = async (src) => {
+	const response = await fetch(src);
+	const arrayBuffer = await response.arrayBuffer();
+	const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+	BGM = audioContext.createBufferSource();
+	BGM.buffer = audioBuffer;
+	BGM.loop = true;
+	BGM.connect(audioContext.destination);
+	BGM.start();
+}
+
 console.log("Init.js is loaded");
 
 Ifont({ size: 48, colour: "white", font: "serif", text_align: "right" })
