@@ -113,6 +113,7 @@ const Iimage = class {
 Sound_Data.ok = new Audio("audios/ok.wav")
 Sound_Data.cancel = new Audio("audios/cancel.wav")
 Sound_Data.select = new Audio("audios/select.wav")
+Sound_Data.text = null
 
 const Image_Data = {};
 
@@ -147,7 +148,8 @@ function Itext(frame, x, y, text) {
 			for (let i = 0; i < frame; i++) {
 				t = t + text.charAt(i);
 			}
-			if (Sound_Data.text) { Sound_Data.text_sending.play(); }
+			if (Sound_Data.text) { Sound_Data.text.currentTime = 0; Sound_Data.text.play() }
+
 		} else {
 			t = text;
 		}
