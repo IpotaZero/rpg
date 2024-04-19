@@ -125,9 +125,12 @@ const scene_main = new class extends Scene {
       },
     ]
 
+    this.direction = "None"
+
     this.enemies = []
 
     this.stage = S.classroom_0
+
   }
 
   start() {
@@ -142,6 +145,8 @@ const scene_main = new class extends Scene {
     this.enemies.forEach(e => {
       e.app[1].camera = true
     })
+
+    this.front = [null, new Iimage("images/web.png", 0, 0, width, height, { camera: false, alpha: 0.5 })][data.front]
   }
 
   end() {
@@ -172,12 +177,18 @@ const scene_main = new class extends Scene {
   player_move() {
     //player move
     this.player.v.x = 0
-    if (pressed.includes("ArrowRight")) { this.player.v.x++; this.characters[0].direction = 0 }
-    if (pressed.includes("ArrowLeft")) { this.player.v.x--; this.characters[0].direction = 1 }
+
+    this.direction = "None"
+
     if (mouse.clicked && !mouse.right_clicked) {
-      if (mouse.p.x > this.player.p.x - Icamera.p.x) { this.player.v.x++; this.characters[0].direction = 0 }
-      if (mouse.p.x < this.player.p.x - Icamera.p.x) { this.player.v.x--; this.characters[0].direction = 1 }
+      if (mouse.p.x > this.player.p.x - Icamera.p.x) { this.direction = "Right" }
+      if (mouse.p.x < this.player.p.x - Icamera.p.x) { this.direction = "Left" }
     }
+    if (pressed.includes("ArrowRight")) { this.direction = "Right" }
+    if (pressed.includes("ArrowLeft")) { this.direction = "Left" }
+    if (this.direction == "Right") { this.player.v.x++; this.characters[0].direction = 0 }
+    if (this.direction == "Left") { this.player.v.x--; this.characters[0].direction = 1 }
+
 
     this.player.speed = (pressed.includes("ShiftLeft") || pressed.includes("ShiftRight")) ? 72 : 36
     this.player.v.x = Math.sign(this.player.v.x) * this.player.speed
@@ -202,6 +213,9 @@ const scene_main = new class extends Scene {
       }
     })
 
+    if (pressed.includes("ArrowUp")) { this.direction = "Up" }
+    if (pressed.includes("ArrowDown")) { this.direction = "Down" }
+
     Icamera.range[1] = this.stage.width
 
     Icamera.target = this.player.p
@@ -223,6 +237,8 @@ const scene_main = new class extends Scene {
 
   draw_front() {
     this.stage.backgrounds.front?.forEach(i => { i.draw() })
+
+    this.front?.draw()
 
     if (this.stage.lighting) {
       Irect(0, 0, width, height, this.stage.lighting)
@@ -302,8 +318,8 @@ const scene_menu = new class extends Scene {
         "0": new Icommand.option(40, 60, ["しょうもうひん", "ちょうきほぞんりょういき"]),
         "[1-3]": new Icommand.option(40, 60, ["アクア", "プリン", "アモン", "シトリ"]),
         "4": new Icommand.do(() => {
-          $.getScript("stages_east_and_west.js")
-          new Event_Move(null, 1620, () => health_room).element()
+          $.getScript(["stages_east_and_west.js", "stages_old_school.js"][data.health_room])
+          new Event_Move(null, 1620, () => [health_room, old_health_room][data.health_room]).element()
         }),
         ".0": new Icommand.do((me) => {
           console.log(me.current_branch)
@@ -428,7 +444,7 @@ const scene_battle = new class extends Scene {
     this.characters = [
       {
         name: "アクア",
-        app: new Iimage("images/ch_aqua_right.png", 330, 390, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_aqua_right.png", Icamera.p.x + 330, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -445,7 +461,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "プリン",
-        app: new Iimage("images/ch_purine_right.png", 190, 390, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_purine_right.png", Icamera.p.x + 190, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -462,7 +478,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "アモン",
-        app: new Iimage("images/ch_ammon_right.png", 70, 390, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_ammon_right.png", Icamera.p.x + 70, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -479,7 +495,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "シトリ",
-        app: new Iimage("images/ch_citri_right.png", -60, 390, 380, 380, { camera: false }),
+        app: new Iimage("images/ch_citri_right.png", Icamera.p.x - 60, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -510,8 +526,7 @@ const scene_battle = new class extends Scene {
     this.frame = 0
 
     this.enemy.max_meter = this.max_meter
-    this.enemy.app[1].camera = false
-    this.enemy.app[1].x = 720
+    this.enemy.app[1].x = Icamera.p.x + 720
     this.enemy.app[1].y = 380
 
     this.log = [this.enemy.name + "があらわれた"]
@@ -566,13 +581,20 @@ const scene_battle = new class extends Scene {
   }
 
   loop() {
+    Icamera.run()
     this.draw()
 
     this.player_action()
 
+    if (this.characters.every(c => c.is_dead)) {
+      this.characters.forEach(c => { c.hp = 20; c.is_dead = false })
+    }
+
     if (this.enemy.hp <= 0) { scene_manager.move_to(scene_win) }
 
     this.enemy_action()
+
+
 
     // if (this.aqua.draw_hp <= 0) { this.log.push("まーけたー") }
 

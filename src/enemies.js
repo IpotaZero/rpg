@@ -74,9 +74,13 @@ const get_enemy_data = async () => {
       }
 
       action(character) {
-        const damage = Math.ceil((this.attack / 2 - character.deffence / 4) * (1 + Math.random() / 2))
+        const damage = Math.ceil((this.attack / 2 - character.deffence / 4) * (1 + Math.random() / 4))
 
         character.hp = Math.max(character.draw_hp - damage, 0)
+
+        Icamera.vibe_power = 24
+
+        se_damage.play()
 
         this.meter = 0
 

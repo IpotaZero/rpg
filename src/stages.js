@@ -15,7 +15,11 @@ const se_punch = new Audio("audios/軽いパンチ2.mp3")
 const se_select = new Audio("audios/select.wav")
 se_select.volume = 0.2
 const se_purine = new Audio("audios/ウミネコの鳴き声.mp3")
+const se_damage = new Audio("audios/damage.wav")
+se_damage.volume = 0.5
 
+const se_slide_door = new Audio("audios/引き戸を開ける2.mp3")
+se_slide_door.volume = 0.6
 
 
 const Stage = class {
@@ -150,7 +154,7 @@ const Event_Move = class extends Event {
     }
 
     loop() {
-        if ((pushed.includes("ok") || pressed.includes(this.direction)) && this.is_touched()) {
+        if ((pushed.includes("ok") || scene_main.direction == this.direction) && this.is_touched()) {
             this.element()
         }
     }
@@ -379,6 +383,8 @@ const Event_Enemy = class extends Event {
                 scene_main.draw_background()
                 scene_main.draw_front()
 
+                Icamera.run()
+
                 if (frame > 12) {
                     ctx.globalAlpha = 0.4
                     Irect(0, 0, width, height, "#400040")
@@ -441,6 +447,8 @@ const data = {
             lv: 0,
         }
     ],
+    health_room: 0,
+    front: 0,
     pH: 7,
     task: "保健室のプリンに話しかける",
     flag: {
@@ -469,7 +477,7 @@ const health_room = new Stage("保健室", 2160, {
     front: [new Iimage("images/bg_health_room_1_front.png", 1080, 0, 1080, 720)]
 }, [
     // new Event_Move(new vec(270, 550), 270, () => S.m_health_room).set("end", () => { back_paper = back_paper_1 }),
-    new Event_Move(new vec(1980, 550), 2360, () => S.corridor_east_0, se_door),
+    new Event_Move(new vec(1980, 550), 2360, () => S.corridor_east_0, "Up", se_door),
 
     new Event_Switch(new vec(1430, 580), 100, [
         new Event_Conversation(null, null, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
@@ -487,12 +495,34 @@ const health_room = new Stage("保健室", 2160, {
     ], () => data.flag.member_num >= 2 ? 1 : 0),
 
     new Event_Command(new vec(270, 550), 40, null, new Icommand({
-
         "": new Icommand.option(40, 80, ["目をつむる", "つむらない"]),
-        "0": new Icommand.do((command) => { console.log("おやすみ"); scene_dark.run("blink", 24, scene_title) }),
+        "0": new Icommand.do((command) => {
+            console.log("おやすみ")
+            scene_dark.run("blink", 24, scene_title)
+            data.health_room = 0
+        }),
         "1": new Icommand.do((command) => { scene_manager.move_to(scene_main) }),
     }
     ))
 ], [])
+
+const old_health_room = new Stage("保険室", 2160, {
+    back: [
+        new Iimage("images/bg_health_room_0.png", 0, 0, 1080, 720),
+        new Iimage("images/bg_old_health_room.png", 1080, 0, 1080, 720),
+    ],
+}, [
+    new Event_Command(new vec(270, 550), 40, null, new Icommand({
+        "": new Icommand.option(40, 80, ["目をつむる", "つむらない"]),
+        "0": new Icommand.do((command) => {
+            console.log("おやすみ")
+            scene_dark.run("blink", 24, scene_title)
+            data.health_room = 1
+        }),
+        "1": new Icommand.do((command) => { scene_manager.move_to(scene_main) }),
+    }
+    )),
+    new Event_Move(new vec(1960, 550), 810, () => S.corridor_old_school_south_0, "Up", se_slide_door),
+], [], { lighting: "#000000c0" })
 
 /**maintenance_space */

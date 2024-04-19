@@ -54,6 +54,8 @@ const mouse_up = (e) => { mouse.clicked = false }
 cvs.addEventListener("mouseup", mouse_up, false)
 cvs.addEventListener("mouseleave", mouse_up, false)
 
+document.oncontextmenu = () => false
+
 cvs.oncontextmenu = (e) => {
 	mouse.right_clicked = true
 	return false

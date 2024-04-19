@@ -361,6 +361,8 @@ const Icamera = new class ICamera {
 		this.v = new vec(0, 0)
 		this.range = [0, 1080]
 
+		this.vibe_power = 0
+
 		this.target = new vec(0, 0)
 	}
 
@@ -369,6 +371,8 @@ const Icamera = new class ICamera {
 		this.p.x += this.v.x
 
 		this.clamp()
+
+		this.vibe()
 	}
 
 	clamp() {
@@ -379,6 +383,11 @@ const Icamera = new class ICamera {
 		if (this.range[1] < width) {
 			this.p.x = (this.range[1] - width) / 2
 		}
+	}
+
+	vibe() {
+		this.p.x += Math.sin(this.vibe_power) * this.vibe_power / 2
+		this.vibe_power = Math.max(this.vibe_power - 1, 0)
 	}
 
 }
