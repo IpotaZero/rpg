@@ -72,7 +72,7 @@ S.corridor_north_3 = new Stage("北棟3階廊下", 4320, {
   new Event_Move(new vec(2290, 550), 1960, () => S.computer_room, "Up", se_door),
   new Event_Move(new vec(3650, 550), 200, () => S.computer_room, "Up", se_door),
 
-  new Event_Move(new vec(4220, 550), 200, () => S.balcony, "Up", se_door),
+  new Event_Move(new vec(4220, 550), 200, () => S.balcony, "Right", se_door),
 ])
 
 S.rooftop_north = new Stage("北棟屋上", 4320, {
@@ -95,7 +95,7 @@ S.rooftop_north = new Stage("北棟屋上", 4320, {
     ]).set("end", () => { data.flag.member_num = 4; scene_main.characters_data[3].p.x = 2160 })
   ], () => data.flag.member_num < 4 ? 1 : 0),
 
-  new Event_Move(new vec(4220, 550), 710, () => S.balcony, "Up", se_metal),
+  new Event_Move(new vec(4220, 550), 710, () => S.balcony, "Right", se_metal),
 ])
 
 S.balcony = new Stage("バルコニー", 810, {

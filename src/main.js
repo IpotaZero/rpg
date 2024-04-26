@@ -4,7 +4,7 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 1080,
     height: 780,
-    title: 'test',
+    title: 'さんばんにんきのくすりばこ',
   });
 
   mainWindow.loadFile('index.html');
