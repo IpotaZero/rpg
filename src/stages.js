@@ -39,10 +39,13 @@ const Stage = class {
 const ef_ex = new Iimage("images/ef_ex.png", 0, 300, 120, 120)
 
 const Event = class {
-    constructor(p, r, app) {
-        this.p = p ?? new vec(0, 0)
-        this.r = r ?? 40
+    constructor(p = new vec(0, 0), r = 40, app = null, sw = () => true) {
+        this.p = p
+        this.r = r
         this.app = app
+        this.sw = sw
+
+        this.chain = null
     }
 
     start() {
@@ -50,10 +53,6 @@ const Event = class {
     }
 
     end() {
-
-    }
-
-    loop() {
 
     }
 
@@ -82,6 +81,16 @@ const Event = class {
         IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2)
     }
 
+    then(event) {
+        if (this.chain) {
+            this.chain.then(event)
+        } else {
+            this.chain = event
+        }
+
+        return this
+    }
+
     is_touched() {
         return scene_main.player.p.sub(this.p).length() < scene_main.player.r + this.r
     }
@@ -91,59 +100,9 @@ const Event = class {
     }
 }
 
-const Event_Chain = class extends Event {
-    constructor(p, r, app, event_list) {
-        super(p, r, app)
-        this.event_list = event_list
-
-        this.reset()
-    }
-
-    loop() {
-        if (pushed.includes("ok") && this.is_touched()) {
-            this.element()
-        }
-    }
-
-    element() {
-        this.phase = 0
-
-        this.event_list[0].start()
-
-        scene_event.event = this
-        scene_manager.move_to(scene_event)
-    }
-
-    event_loop() {
-        const e = this.event_list[this.phase]
-        e?.event_loop()
-
-        if (e.is_done) {
-            e.end()
-
-
-            if (this.phase == this.event_list.length - 1) {
-                this.is_done = true
-                return
-            }
-
-            this.phase++
-
-            this.event_list[this.phase].start()
-            this.event_list[this.phase].frame = 0
-        }
-    }
-
-    reset() {
-        this.is_done = false
-        this.phase = 0
-    }
-
-}
-
 const Event_Move = class extends Event {
-    constructor(p, x, to, direction = null, sound = null) {
-        super(p, 40, null)
+    constructor(p = new vec(0, 0), x = 0, to, direction = null, sound = null, sw = () => true) {
+        super(p, 40, null, sw)
 
         this.x = x
         this.to = to
@@ -153,17 +112,8 @@ const Event_Move = class extends Event {
         this.reset()
     }
 
-    loop() {
-        if ((pushed.includes("ok") || scene_main.direction == this.direction) && this.is_touched()) {
-            this.element()
-        }
-    }
-
-    element() {
+    start() {
         this.frame = 0
-
-        scene_event.event = this
-        scene_manager.move_to(scene_event)
     }
 
     event_loop() {
@@ -210,26 +160,17 @@ const Event_Move = class extends Event {
 }
 
 const Event_Conversation = class extends Event {
-    constructor(p, r, app, text, voice = null) {
-        super(p, r, app)
+    constructor(p = new vec(0, 0), r = 40, app = null, text = [], voice = null, sw = () => true) {
+        super(p, r, app, sw)
         this.text = text
         this.voice = voice
 
         this.reset()
     }
 
-    loop() {
-        if ((pushed.includes("ok")) && this.is_touched()) {
-            this.element()
-        }
-    }
-
-    element() {
+    start() {
         scene_main.player.p.y = height - scene_main.player.r
         scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
-
-        scene_event.event = this
-        scene_manager.move_to(scene_event)
     }
 
     event_loop() {
@@ -269,26 +210,17 @@ const Event_Conversation = class extends Event {
 }
 
 const Event_Command = class extends Event {
-    constructor(p, r, app, command) {
-        super(p, r, app)
+    constructor(p, r, app, command, sw = () => true) {
+        super(p, r, app, sw)
         this.command = command
 
         this.reset()
     }
 
-    loop() {
-        if ((pushed.includes("ok")) && this.is_touched()) {
-            this.element()
-        }
-    }
-
-    element() {
+    start() {
         Sound_Data.text = null
         scene_main.player.p.y = scene_main.stage.height - scene_main.player.r
         scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
-
-        scene_event.event = this
-        scene_manager.move_to(scene_event)
     }
 
     event_loop() {
@@ -309,18 +241,11 @@ const Event_Command = class extends Event {
 }
 
 const Event_Illustlation = class extends Event {
-    constructor(p, r, illust) {
-        super(p, r, null)
+    constructor(p, r, illust, sw = () => true) {
+        super(p, r, null, sw)
         this.illust = illust
 
         this.reset()
-    }
-
-    loop() {
-        if ((pushed.includes("ok")) && this.is_touched()) {
-            scene_event.event = this
-            scene_manager.move_to(scene_event)
-        }
     }
 
     event_loop() {
@@ -330,35 +255,6 @@ const Event_Illustlation = class extends Event {
             this.is_done = true
         }
 
-    }
-}
-
-const Event_Switch = class extends Event {
-    constructor(p, r, events, terms) {
-        super(p, r, null)
-        this.events = events
-        this.terms = terms
-
-        this.reset()
-    }
-
-    loop() {
-        const e = this.events[this.terms()]
-
-        if (e) { e.p = this.p; e.loop() }
-
-
-    }
-
-    draw() {
-        const e = this.events[this.terms()]
-
-        if (e) { e.draw() }
-    }
-
-    reset() {
-        this.is_done = false
-        this.events.forEach(e => { e.reset() })
     }
 }
 
@@ -479,20 +375,20 @@ const health_room = new Stage("保健室", 2160, {
     // new Event_Move(new vec(270, 550), 270, () => S.m_health_room).set("end", () => { back_paper = back_paper_1 }),
     new Event_Move(new vec(1980, 550), 2360, () => S.corridor_east_0, "Up", se_door),
 
-    new Event_Switch(new vec(1430, 580), 100, [
-        new Event_Conversation(null, null, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
-            [
-                "プリン: あら、アクア どうしたの？",
-                "プリン: なんでお仕事してるか分からなくなったって？",
-                "プリン: ......そういえばわたしも何でお仕事してるんだっけ？",
-                "プリン: 今日はもう上がっていろんな人と話してみたら？",
-                "プリン: わたしもついていくわ！",
-                "プリンが仲間になった",
-                "プリン: そうそう、休みたいときは奥のベッドで目をつむってね"
-            ], se_purine
-        ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2; scene_main.characters_data[1].p.x = 1430 }),
-        new Event_Conversation(null, null, null, ["やさしさ"], se_select),
-    ], () => data.flag.member_num >= 2 ? 1 : 0),
+    new Event_Conversation(new vec(1430, 580), 100, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
+        [
+            "プリン: あら、アクア どうしたの？",
+            "プリン: なんでお仕事してるか分からなくなったって？",
+            "プリン: ......そういえばわたしも何でお仕事してるんだっけ？",
+            "プリン: 今日はもう上がっていろんな人と話してみたら？",
+            "プリン: わたしもついていくわ！",
+            "プリンが仲間になった",
+            "プリン: そうそう、休みたいときは奥のベッドで目をつむってね"
+        ],
+        se_purine
+        , () => data.flag.member_num < 2
+    ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2; scene_main.characters_data[1].p.x = 1430 }),
+    new Event_Conversation(new vec(1430, 580), 100, null, ["やさしさ"], se_select, () => data.flag.member_num >= 2),
 
     new Event_Command(new vec(270, 550), 40, null, new Icommand({
         "": new Icommand.option(40, 80, ["目をつむる", "つむらない"]),

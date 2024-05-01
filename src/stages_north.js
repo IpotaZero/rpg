@@ -80,20 +80,20 @@ S.rooftop_north = new Stage("北棟屋上", 4320, {
     new Iimage("images/bg_rooftop.png", 0, 0, 1080 * 4, 720, { repeat_x: 4 }),
   ]
 }, [
-  new Event_Switch(new vec(2160, 580), 40, [
-    new Event_Conversation(null, null, null, ["かわいさ"], se_select),
-    new Event_Conversation(null, null, new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), [
-      "シトリ: うわ、びっくりした<br>よく来たねこんなとこまで",
-      "アモン: 何してるんだ？",
-      "シトリ: か、風を感じてただけだよぉ<br>疑わないでね",
-      "プリン: 質問！あなたはなぜ働いているの？",
-      "シトリ: ......働いている理由なんてない。<br>けど、働いていないとあたしは何物でもない",
-      "シトリ: 辞めたいよね、お仕事",
-      "アモン: じゃあ今日くらいは遊んでもいいんじゃないのか？<br>一緒に行こうぜ！",
-      "シトリ: ......じゃあ遊んじゃおっかな！<br>そうだ、知ってる？旧校舎のこと<br>行ってみたかったんだよねー！",
-      "シトリが仲間になった",
-    ]).set("end", () => { data.flag.member_num = 4; scene_main.characters_data[3].p.x = 2160 })
-  ], () => data.flag.member_num < 4 ? 1 : 0),
+  new Event_Conversation(new vec(2160, 580), 40, null, ["かわいさ"], se_select, () => data.flag.member_num >= 4),
+  new Event_Conversation(new vec(2160, 580), 40, new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), [
+    "シトリ: うわ、びっくりした<br>よく来たねこんなとこまで",
+    "アモン: 何してるんだ？",
+    "シトリ: か、風を感じてただけだよぉ<br>疑わないでね",
+    "プリン: 質問！あなたはなぜ働いているの？",
+    "シトリ: ......働いている理由なんてない。<br>けど、働いていないとあたしは何物でもない",
+    "シトリ: 辞めたいよね、お仕事",
+    "アモン: じゃあ今日くらいは遊んでもいいんじゃないのか？<br>一緒に行こうぜ！",
+    "シトリ: ......じゃあ遊んじゃおっかな！<br>そうだ、知ってる？旧校舎のこと<br>行ってみたかったんだよねー！",
+    "シトリが仲間になった",
+  ]
+    , () => data.flag.member_num < 4
+  ).set("end", () => { data.flag.member_num = 4; scene_main.characters_data[3].p.x = 2160 }),
 
   new Event_Move(new vec(4220, 550), 710, () => S.balcony, "Right", se_metal),
 ])
@@ -135,10 +135,8 @@ S.cooking_room = new Stage("調理室", 3240, {
     new Iimage("images/bg_cooking_room_2.png", 2700, 0, 540, 720),
   ]
 }, [
-  new Event_Conversation(new vec(200, 550), 40, null, ["ほうちょう"], se_select).set("end", () => { se_glass.play(); data.flag.broken_plate = true }),
+  new Event_Conversation(new vec(200, 550), 40, null, ["ほうちょう"], se_select),
   new Event_Move(new vec(740, 550), 3920, () => S.corridor_north_2, "Up", se_door),
-
-  new Event_Switch(new vec(1680, 550), 40, [event_nothing, new Event_Conversation(null, null, null, ["皿が割れている"], se_select)], () => data.flag.broken_plate ? 1 : 0),
 
   new Event_Move(new vec(2520, 550), 2560, () => S.corridor_north_2, "Up", se_door),
 ])
@@ -291,10 +289,8 @@ S.entrance_teachers_locker_room = new Stage("教員用プール更衣室前", 16
 S.teachers_pool_locker_room_0 = new Stage("女性教員用プール更衣室", 1080, {
   back: [new Iimage("images/bg_teachers_locker_room.png", 0, 0, 1080, 720)]
 }, [
-  new Event_Switch(new vec(150, 550), 40, [
-    new Event_Conversation(null, null, null, ["『よびのみずぎ』をみつけた"], se_select).set("end", () => { data.item_flag.aqua.spare_swimsuit_0 = true }),
-    new Event_Conversation(null, null, null, ["ここにはもうなにもない"], se_select)
-  ], () => data.item_flag.spare_swimsuit_0 ? 1 : 0),
+  new Event_Conversation(new vec(150, 550), 40, null, ["『よびのみずぎ』をみつけた"], se_select, () => !data.item_flag.spare_swimsuit_0).set("end", () => { data.item_flag.aqua.spare_swimsuit_0 = true }),
+  new Event_Conversation(new vec(150, 550), 40, null, ["ここにはもうなにもない"], se_select, () => !data.item_flag.spare_swimsuit_0),
   new Event_Move(new vec(1080, 550), 200, () => S.entrance_teachers_locker_room, "Right", se_door)
 ], [], { gender: "f" })
 
@@ -302,10 +298,8 @@ S.teachers_pool_locker_room_1 = new Stage("男性教員用プール更衣室", 1
   back: [new Iimage("images/bg_teachers_locker_room.png", 0, 0, 1080, 720)]
 }, [
   new Event_Move(new vec(0, 550), 900, () => S.entrance_teachers_locker_room, "Left", se_door),
-  new Event_Switch(new vec(1080, 550), 40, [
-    new Event_Conversation(null, null, null, ["『よびのみずぎ』をみつけた"], se_select).set("end", () => { data.item_flag.aqua.spare_swimsuit_1 = true }),
-    new Event_Conversation(null, null, null, ["ここにはもうなにもない"], se_select)
-  ], () => data.item_flag.spare_swimsuit_1 ? 1 : 0),
+  new Event_Conversation(new vec(1080, 550), 40, null, ["『よびのみずぎ』をみつけた"], se_select, () => !data.item_flag.spare_swimsuit_1).set("end", () => { data.item_flag.aqua.spare_swimsuit_1 = true }),
+  new Event_Conversation(new vec(1080, 550), 40, null, ["ここにはもうなにもない"], se_select, () => !data.item_flag.spare_swimsuit_1),
 ], [], { gender: "m" })
 
 S.old_school_back_entrance = new Stage("旧小学校裏門", 4320, {}, [

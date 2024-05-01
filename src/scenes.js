@@ -161,7 +161,10 @@ const scene_main = new class extends Scene {
     }
 
     this.stage.events.forEach((e) => {
-      e.loop(e)
+      if (pushed.includes("ok") && e.sw() && e.is_touched()) {
+        scene_event.event = e
+        scene_manager.move_to(scene_event)
+      }
     })
 
     this.enemies.forEach(e => {
@@ -265,7 +268,7 @@ const scene_main = new class extends Scene {
     })
 
     this.stage.events.forEach((e) => {
-      e.draw()
+      if (e.sw()) { e.draw() }
     })
 
     this.enemies.forEach(e => {
@@ -273,7 +276,6 @@ const scene_main = new class extends Scene {
     })
 
     ctx.restore();
-
   }
 
   draw_meta() {
@@ -291,7 +293,7 @@ const scene_event = new class extends Scene {
 
   start() {
     this.event.reset()
-    this.event.start(this.event)
+    this.event.start()
   }
 
   end() {
@@ -300,10 +302,17 @@ const scene_event = new class extends Scene {
 
   loop() {
     if (!this.event.is_done) {
-      this.event.event_loop(this.event)
+      this.event.event_loop()
     }
     if (this.event.is_done) {
-      scene_manager.move_to(scene_main)
+      if (this.event.chain) {
+        this.event.end()
+        this.event = this.event.chain
+        this.event.reset()
+        this.event.start()
+      } else {
+        scene_manager.move_to(scene_main)
+      }
     }
   }
 }()
