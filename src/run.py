@@ -2,7 +2,7 @@ import webview
 import threading
 
 
-# 実行しながらソースコードを変更できるのです スゴイ！
+# 実行しながらソースコードを変更できるのです スゴイ!
 def command():
     running = True
 

@@ -83,16 +83,16 @@ S.rooftop_north = new Stage("北棟屋上", 4320, {
   new Event_Conversation(new vec(2160, 580), 40, null, ["かわいさ"], se_select, () => data.flag.member_num >= 4),
   new Event_Conversation(new vec(2160, 580), 40, new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), [
     "シトリ: うわ、びっくりした<br>よく来たねこんなとこまで",
-    "アモン: 何してるんだ？",
+    "アモン: 何してるんだ?",
     "シトリ: か、風を感じてただけだよぉ<br>疑わないでね",
-    "プリン: 質問！あなたはなぜ働いているの？",
+    "プリン: 質問!あなたはなぜ働いているの?",
     "シトリ: ......働いている理由なんてない。<br>けど、働いていないとあたしは何物でもない",
     "シトリ: 辞めたいよね、お仕事",
-    "アモン: じゃあ今日くらいは遊んでもいいんじゃないのか？<br>一緒に行こうぜ！",
-    "シトリ: ......じゃあ遊んじゃおっかな！<br>そうだ、知ってる？旧校舎のこと<br>行ってみたかったんだよねー！",
+    "アモン: じゃあ今日くらいは遊んでもいいんじゃないのか?<br>一緒に行こうぜ!",
+    "シトリ: ......じゃあ遊んじゃおっかな!<br>そうだ、知ってる?旧校舎のこと<br>行ってみたかったんだよねー!",
     "シトリが仲間になった",
-  ]
-    , () => data.flag.member_num < 4
+  ],
+    null, () => data.flag.member_num < 4
   ).set("end", () => { data.flag.member_num = 4; scene_main.characters_data[3].p.x = 2160 }),
 
   new Event_Move(new vec(4220, 550), 710, () => S.balcony, "Right", se_metal),

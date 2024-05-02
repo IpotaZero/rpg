@@ -32,7 +32,7 @@ const scene_pretitle = new class extends Scene {
   loop() {
     Irect(0, 0, width, height, "#121212")
     Ifont({ size: 36, colour: "white", font: "Pixel", text_align: "center" })
-    Itext5(this.frame * 2, width / 2, height / 2, font_size, "ゲームを遊ぶときは気分を明るくして現実から離れてみてね！<br>Press KeyZ")
+    Itext5(this.frame * 2, width / 2, height / 2, font_size, "ゲームを遊ぶときは気分を明るくして現実から離れてみてね!<br>Press KeyZ")
 
     if (pushed.includes("ok")) {
       scene_manager.move_to(scene_title)
@@ -161,8 +161,9 @@ const scene_main = new class extends Scene {
     }
 
     this.stage.events.forEach((e) => {
-      if (pushed.includes("ok") && e.sw() && e.is_touched()) {
+      if ((pushed.includes("ok") || pressed.includes("Arrow" + e.direction)) && e.sw() && e.is_touched()) {
         scene_event.event = e
+        // e.reset()
         scene_manager.move_to(scene_event)
       }
     })
@@ -683,7 +684,6 @@ const scene_dark = new class extends Scene {
         Irect(0, 0, width, height, "black")
         ctx.globalAlpha = 1
         break
-
       case "curtain":
         Irect(0, height * (Math.sin(Math.PI * this.frame / this.time) - 1), width, height, "black")
         break
@@ -768,6 +768,8 @@ const back_paper_0 = new Iimage("images/4959763_s.jpg", 0, 0, width, height, { a
 const back_paper_1 = new Iimage("images/Paper01.jpg", 0, 0, width, height, { alpha: 0.2, camera: false })
 let back_paper = back_paper_1
 
+let objects = []
+
 const main = () => {
   requestAnimationFrame(main)
 
@@ -780,6 +782,14 @@ const main = () => {
     if (mouse.double_clicked) { pushed.push("ok") }
     if (mouse.wheel > 0) { pushed.push("ArrowDown") }
     if (mouse.wheel < 0) { pushed.push("ArrowUp") }
+
+    gamepad_translate()
+
+    objects.forEach(o => {
+      o.run()
+    })
+
+    objects = objects.filter(o => o.life > 0)
 
     scene_manager.current_scene.loop();
     ctx.globalCompositOption = "overlay"
@@ -796,8 +806,6 @@ const main = () => {
     mouse.right_clicked = false
     mouse.double_clicked = false
     mouse.wheel = 0
-
-    gamepad_translate()
   }
 }
 

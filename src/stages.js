@@ -38,7 +38,7 @@ const Stage = class {
 
 const ef_ex = new Iimage("images/ef_ex.png", 0, 300, 120, 120)
 
-const Event = class {
+const Event_Stage = class {
     constructor(p = new vec(0, 0), r = 40, app = null, sw = () => true) {
         this.p = p
         this.r = r
@@ -46,6 +46,8 @@ const Event = class {
         this.sw = sw
 
         this.chain = null
+
+        this.is_done = false
     }
 
     start() {
@@ -100,7 +102,7 @@ const Event = class {
     }
 }
 
-const Event_Move = class extends Event {
+const Event_Move = class extends Event_Stage {
     constructor(p = new vec(0, 0), x = 0, to, direction = null, sound = null, sw = () => true) {
         super(p, 40, null, sw)
 
@@ -109,11 +111,12 @@ const Event_Move = class extends Event {
         this.direction = direction
         this.sound = sound
 
-        this.reset()
+        this.frame = 0
     }
 
-    start() {
+    reset() {
         this.frame = 0
+        this.is_done = false
     }
 
     event_loop() {
@@ -159,18 +162,13 @@ const Event_Move = class extends Event {
 
 }
 
-const Event_Conversation = class extends Event {
+const Event_Conversation = class extends Event_Stage {
     constructor(p = new vec(0, 0), r = 40, app = null, text = [], voice = null, sw = () => true) {
         super(p, r, app, sw)
         this.text = text
         this.voice = voice
 
-        this.reset()
-    }
-
-    start() {
-        scene_main.player.p.y = height - scene_main.player.r
-        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+        this.frame = 0
     }
 
     event_loop() {
@@ -198,29 +196,25 @@ const Event_Conversation = class extends Event {
             }
         }
 
-
         this.frame++
     }
 
     reset() {
+        scene_main.player.p.y = height - scene_main.player.r
+        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+
         this.is_done = false
         this.frame = 0
         this.text_num = 0
     }
 }
 
-const Event_Command = class extends Event {
+const Event_Command = class extends Event_Stage {
     constructor(p, r, app, command, sw = () => true) {
         super(p, r, app, sw)
         this.command = command
 
-        this.reset()
-    }
-
-    start() {
-        Sound_Data.text = null
-        scene_main.player.p.y = scene_main.stage.height - scene_main.player.r
-        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+        this.frame = 0
     }
 
     event_loop() {
@@ -235,17 +229,21 @@ const Event_Command = class extends Event {
     }
 
     reset() {
+        Sound_Data.text = null
+        scene_main.player.p.y = scene_main.stage.height - scene_main.player.r
+        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+
         this.is_done = false
         this.command.reset()
     }
 }
 
-const Event_Illustlation = class extends Event {
+const Event_Illustlation = class extends Event_Stage {
     constructor(p, r, illust, sw = () => true) {
         super(p, r, null, sw)
         this.illust = illust
 
-        this.reset()
+        // this.reset()
     }
 
     event_loop() {
@@ -258,13 +256,13 @@ const Event_Illustlation = class extends Event {
     }
 }
 
-const Event_Enemy = class extends Event {
+const Event_Enemy = class extends Event_Stage {
     constructor(p, r, app, enemy) {
         super(p, r, app)
         this.enemy = enemy
 
         this.direction = 0
-        this.reset()
+        // this.reset()
     }
 
     loop() {
@@ -377,11 +375,11 @@ const health_room = new Stage("保健室", 2160, {
 
     new Event_Conversation(new vec(1430, 580), 100, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
         [
-            "プリン: あら、アクア どうしたの？",
-            "プリン: なんでお仕事してるか分からなくなったって？",
-            "プリン: ......そういえばわたしも何でお仕事してるんだっけ？",
-            "プリン: 今日はもう上がっていろんな人と話してみたら？",
-            "プリン: わたしもついていくわ！",
+            "プリン: あら、アクア どうしたの?",
+            "プリン: なんでお仕事してるか分からなくなったって?",
+            "プリン: ......そういえばわたしも何でお仕事してるんだっけ?",
+            "プリン: 今日はもう上がっていろんな人と話してみたら?",
+            "プリン: わたしもついていくわ!",
             "プリンが仲間になった",
             "プリン: そうそう、休みたいときは奥のベッドで目をつむってね"
         ],
