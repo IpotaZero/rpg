@@ -46,6 +46,6 @@ d = threading.Thread(target=command, daemon=True)
 d.start()
 
 window = webview.create_window(
-    "RPG", url="index.html", width=1180, height=820, resizable=True
+    "RPG", url="index.html", width=1080, height=720, resizable=True
 )
 webview.start(http_server=True, debug=True)

@@ -68,7 +68,7 @@ const Event_Stage = class {
     }
 
     draw() {
-        if (this.app) {
+        if (this.app != null) {
             this.app.x = this.p.x - this.app.width / 2
             this.app.y = this.p.y - this.app.height / 2
             this.app.draw()
@@ -263,6 +263,8 @@ const Event_Enemy = class extends Event_Stage {
 
         this.direction = 0
         // this.reset()
+        this.frame = 0
+        this.cooldown = 0
     }
 
     loop() {
@@ -321,7 +323,7 @@ const Event_Enemy = class extends Event_Stage {
 
 let S = {}
 
-const event_nothing = new Event(new vec(0, 0), 40, null).set("draw", function () { IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2) })
+const event_nothing = new Event_Stage(new vec(0, 0), 40, null).set("draw", function () { IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2) })
 
 const stage_temporary = new Stage("仮部屋", 1080, {}, [])
 

@@ -97,9 +97,15 @@ S.rooftop_east = new Stage("東棟屋上", 4320, {
   new Event_Move(new vec(3780, 550), 4040, () => S.corridor_east_3, "Up", se_door),
 ])
 
-S.back_garden = new Stage("裏庭", 1080, {}, [
+S.back_garden = new Stage("裏庭", 1080, {
+  back: [new Iimage("images/bg_back_garden.png", 0, 0, 1080, 720)]
+}, [
+  new Event_Conversation(new vec(180, 550), 40, null, ["アンドロイド植物"], se_select),
+  new Event_Conversation(new vec(500, 550), 40, null, ["暗すぎるので全然育ってない"], se_select),
+  new Event_Conversation(new vec(900, 550), 40, null, ["目のような模様"], se_select),
+
   new Event_Move(new vec(1080, 550), 0, () => S.corridor_east_0, "Right", se_door),
-])
+], [], { _height: 680, lighting: "#00000080" })
 
 S.classroom_0 = new Stage("0年生教室", 1080,
   {
@@ -115,6 +121,7 @@ S.classroom_0 = new Stage("0年生教室", 1080,
 S.warehouse_under_stairs_east = new Stage("東棟階段下倉庫", 1080, {
   back: [new Iimage("images/bg_warehouse.png", 0, 0, 1080, 720)],
 }, [
+  new Event_Conversation(new vec(180, 550), 40, null, ["授業に使う物資が詰まっている"], se_select),
   new Event_Move(new vec(900, 550), 3500, () => S.corridor_east_0, "Up", se_door),
 ], [], { lighting: "#00000080" })
 
@@ -136,6 +143,9 @@ S.classroom_2 = new Stage("2年生教室", 1080,
   },
   [
     new Event_Move(new vec(200, 550), 1440, () => S.corridor_east_2, "Up", se_door),
+
+    new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_student_0.png", 540, 580, 380, 380), ["物憂げな生徒:<br>んん...ぼくがここにいる意味なんてないよね...", "物憂げな生徒:<br>でも未だ帰りたくもないんだ..."], se_select),
+
     new Event_Move(new vec(900, 550), 740, () => S.corridor_east_2, "Up", se_door),
   ], []
 )

@@ -89,6 +89,30 @@ const play_bgm = async (src) => {
 	BGM.start();
 }
 
+let c_size = 1
+
+// キャンバスのサイズを更新する関数
+function resizeCanvas() {
+	const innerHeight = window.innerHeight
+	// ウィンドウの縦幅がキャンバスのアスペクト比よりも小さい場合
+	if (innerHeight < (window.innerWidth * 2) / 3) {
+		cvs.height = innerHeight;
+		cvs.width = (innerHeight * 3) / 2; // 3:2のアスペクト比を保つ
+	} else {
+		cvs.width = window.innerWidth;
+		cvs.height = (window.innerWidth * 2) / 3; // 3:2のアスペクト比を保つ
+	}
+
+	console.log("resized")
+
+	c_size = cvs.width / 1080
+	ctx.scale(c_size, c_size)
+
+}
+
+// ウィンドウのリサイズイベントにリスナーを追加
+window.addEventListener('resize', resizeCanvas);
+
 console.log("Init.js is loaded");
 
 Ifont({ size: 48, colour: "white", font: "serif", text_align: "right" })

@@ -185,8 +185,8 @@ const scene_main = new class extends Scene {
     this.direction = "None"
 
     if (mouse.clicked && !mouse.right_clicked) {
-      if (mouse.p.x > this.player.p.x - Icamera.p.x) { this.direction = "Right" }
-      if (mouse.p.x < this.player.p.x - Icamera.p.x) { this.direction = "Left" }
+      if (mouse.p.x / c_size > this.player.p.x - Icamera.p.x) { this.direction = "Right" }
+      if (mouse.p.x / c_size < this.player.p.x - Icamera.p.x) { this.direction = "Left" }
     }
     if (pressed.includes("ArrowRight")) { this.direction = "Right" }
     if (pressed.includes("ArrowLeft")) { this.direction = "Left" }
@@ -329,7 +329,8 @@ const scene_menu = new class extends Scene {
         "[1-3]": new Icommand.option(40, 60, ["アクア", "プリン", "アモン", "シトリ"]),
         "4": new Icommand.do(() => {
           $.getScript(["stages_east_and_west.js", "stages_old_school.js"][data.health_room])
-          new Event_Move(null, 1620, () => [health_room, old_health_room][data.health_room]).element()
+          scene_event.event = new Event_Move(null, 1620, () => [health_room, old_health_room][data.health_room])
+          scene_manager.move_to(scene_event)
         }),
         ".0": new Icommand.do((me) => {
           console.log(me.current_branch)
@@ -799,7 +800,7 @@ const main = () => {
     //   Irect(0, 0, width, height, "#ff80ff20");
     // }
 
-    Irect(0, 0, width, height, "white", "stroke", 2);
+    // Irect(0, 0, width, height, "white", "stroke", 2);
 
     pushed = [];
 

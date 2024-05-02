@@ -1,9 +1,12 @@
-@font-face{
+@font-face {
   font-family: Pixel;
   src: url('DotGothic16-Regular.ttf') format("truetype");
 }
 
 body {
+  margin: 0;
+  padding: 0;
+
   background-color: #121212;
   text-align: center;
 
@@ -16,11 +19,13 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  /* width: 100vw; */
   /* ビューポートの高さいっぱいに伸ばす */
 }
 
+/*  
 input[type="button"] {
-  /* input要素のうちtype属性値がbuttonのものに対して装飾 */
+  input要素のうちtype属性値がbuttonのものに対して装飾
   color: white;
 
   background-color: black;
@@ -32,7 +37,7 @@ input[type="button"] {
 }
 
 input[type="button"]:hover {
-  /* マウスが載ったとき */
+  マウスが載ったとき
   color: black;
 
   background-color: white;
@@ -42,7 +47,7 @@ input[type="button"]:hover {
 input[type="range"] {
   -webkit-appearance: none;
   width: 120px;
-  /* 全体の幅を720pxに調整 */
+  全体の幅を720pxに調整
   height: 10px;
   border-radius: 5px;
   background: white;
@@ -59,7 +64,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: black;
   border: 2px solid white;
-  /* 白線で縁取り */
+  白線で縁取り
   cursor: pointer;
 }
 
@@ -70,4 +75,4 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   background: black;
   cursor: pointer;
-}
+} */
