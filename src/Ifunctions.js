@@ -37,24 +37,22 @@ const LocalStorage = class {
 }
 
 const Iimage = class {
-	constructor(path, x = 0, y = 0, width, height, { ratio = 1, alpha = 1, rotate = 0, center_x = 0, center_y = 0, repeat_x = 1, repeat_y = 1, camera = true } = {}) {
+	constructor(path, x = 0, y = 0, width, height, { alpha = 1, rotate = 0, center_x = 0, center_y = 0, repeat_x = 1, repeat_y = 1, camera = true, reverse_x = false } = {}) {
 		let p = path.split(".")
 		if (p[p.length - 1] == "apng") {
 			this.type = "anime"
 			this.image = []
 			APNG.parseURL(path).then((apngObject) => { apngObject.frames.forEach((e) => { this.image.push(e.img) }) })
-			this.frame = 0
-
 		} else {
 			this.type = "not_anime"
-			this.image = new Image()
-			this.image.src = path
-
+			this.image = [new Image()]
+			this.image[0].src = path
 		}
+
+		this.frame = 0
 
 		this.width = width
 		this.height = height
-		this.ratio = ratio
 		this.alpha = alpha
 
 		this.rotate = rotate
@@ -68,6 +66,8 @@ const Iimage = class {
 		this.y = y
 
 		this.camera = camera
+
+		this.reverse_x = reverse_x
 	}
 
 	draw() {
@@ -76,28 +76,30 @@ const Iimage = class {
 
 		ctx.globalAlpha = this.alpha
 
-		const w = this.width * this.ratio / this.repeat_x
-		const h = this.height * this.ratio / this.repeat_y
+		const unit_width = this.width / this.repeat_x
+		const unit_height = this.height / this.repeat_y
 
-		ILoop([0, 0], [this.repeat_x - 1, this.repeat_y - 1], (a, b) => {
-			if (this.type == "anime") {
-				this.camera ?
-					IimageC(this.image[this.frame], this.x - this.center_x + w * a, this.y - this.center_y + h * b, w, h) :
-					ctx.drawImage(this.image[this.frame], this.x - this.center_x + w * a, this.y - this.center_y + h * b, w, h)
-			} else {
-				this.camera ?
-					IimageC(this.image, this.x - this.center_x + w * a, this.y - this.center_y + h * b, w, h) :
-					ctx.drawImage(this.image, this.x - this.center_x + w * a, this.y - this.center_y + h * b, w, h)
+		if (this.reverse_x) { ctx.transform(-1, 0, 0, 1, 0, 0); }
+
+		ILoop([0, 0], [this.repeat_x - 1, this.repeat_y - 1], (i, j) => {
+			let real_x = this.x - this.center_x + unit_width * i
+			let real_y = this.y - this.center_y + unit_height * j
+
+			if (this.camera) {
+				real_x -= Icamera.p.x
+				real_y -= Icamera.p.y
 			}
+
+			if (this.reverse_x) { real_x = - real_x - unit_width }
+
+			ctx.drawImage(this.image[this.frame], real_x, real_y, unit_width, unit_height)
 		})
 
-		if (this.type == "anime") {
+		if (this.image.length > 1) {
 			this.frame = (this.frame + 1) % (this.image.length - 1)
 		}
-
 		// // コンテキストを元に戻す
 		ctx.restore();
-
 	}
 
 	move(x, y, loop_x, loop_y) {

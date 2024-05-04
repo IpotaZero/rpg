@@ -1,77 +1,38 @@
-const Actor = class {
-  constructor(max_hp, max_token, attack, deffence, speed, app) {
-    this.max_hp = max_hp
-    this.max_token = max_token
-    this.attack = attack
-    this.deffence = deffence
-    this.speed = speed
-    this.app = app
+const csv2json = (csvArray) => {
+  let jsonArray = [];
+
+  const RowArray = csvArray.split('\r\n');
+  const items = RowArray[0].split(',');
+  for (let i = 1; i < RowArray.length; i++) {
+    const cellArray = RowArray[i].split(',');
+    let line = new Object();
+    for (let j = 0; j < items.length; j++) {
+      line[items[j]] = cellArray[j];
+    }
+    jsonArray.push(line);
   }
-
-  reset() {
-    this.hp = this.max_hp
-    this.token = this.max_token
-    this.meter = 0
-  }
-
-  action(character) {
-
-  }
-
-  draw() {
-    //enemy
-    Irect(850, 320, 120, 24, "black")
-    Irect(850, 320, 120 * (this.meter / this.max_meter), 24, "#c0c0c0")
-    Irect(850, 360, 120, 24, "black")
-    Irect(850, 360, 120 * (this.hp / this.max_hp), 24, "#ff4040")
-
-
-  }
-
-  set(key, value) {
-    this[key] = value
-    return this
-  }
+  return jsonArray;
 }
 
+const make_enemy_from_json = (json) => {
+  for (let key in json) {
+    const enemy = json[key]
 
-const get_enemy_data = async () => {
-  const Enemy_Data = {}
+    E[enemy.id] = {
+      name: enemy.name,
+      max_hp: +enemy.hp,
+      max_token: +enemy.token,
+      credit: +enemy.credit,
+      exp: +enemy.exp,
 
-  const file = await (await fetch("enemy_data.xlsx")).arrayBuffer();
-  const workbook = XLSX.read(file);
-  const first_sheet = workbook.Sheets[workbook.SheetNames[0]];
+      attack: +enemy.attack,
+      deffence: +enemy.deffence,
+      speed: +enemy.speed,
 
-  // console.log(first_sheet)
+      hp: +enemy.hp,
+      token: +enemy.token,
 
-  const column = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"]
-
-  for (let i = 2; i < 7; i++) {
-    const row_name = first_sheet["A" + i].v
-    Enemy_Data[row_name] = {}
-    for (let c of column) {
-      const column_name = first_sheet[c + 1].v
-      Enemy_Data[row_name][column_name] = first_sheet[c + i]?.v
-    }
-  }
-
-
-  for (let key in Enemy_Data) {
-    const e = Enemy_Data[key]
-    E[key] = new class extends Actor {
-      constructor() {
-        super(e.hp, e.token, e.attack, e.deffence, e.speed, null)
-        this.name = e.name
-        this.credit = e.credit
-        this.exp = e.exp
-
-        if (e.image_right) {
-          this.app = [new Iimage(e.image_right, 0, 580, 380, 380), new Iimage(e.image_left, 0, 580, 380, 380)]
-        } else {
-          this.app = null
-        }
-        this.reset()
-      }
+      app: new Iimage(enemy.image, 0, 580, 380, 380),
 
       action(character) {
         const damage = Math.ceil((this.attack / 2 - character.deffence / 4) * (1 + Math.random() / 4))
@@ -85,14 +46,39 @@ const get_enemy_data = async () => {
         this.meter = 0
 
         return [this.name + "のこうげき", character.name + "に" + damage + "のダメージ"]
+      },
+
+      reset() {
+        this.hp = this.max_hp
+        this.token = this.max_token
+        this.meter = 0
+      },
+
+      draw() {
+        //enemy
+        Irect(850, 320, 120, 24, "black")
+        Irect(850, 320, 120 * (this.meter / this.max_meter), 24, "#c0c0c0")
+        Irect(850, 360, 120, 24, "black")
+        Irect(850, 360, 120 * (this.hp / this.max_hp), 24, "#ff4040")
+
+
       }
-    }()
+
+    }
   }
 }
 const E = {}
 
-get_enemy_data()
-
+fetch("enemy_data.csv")
+  .then(response => response.text())
+  .then(data => {
+    const json = csv2json(data)
+    console.log(json)
+    make_enemy_from_json(json)
+  })
+  .catch(error => {
+    console.error('敵データが読み込めないにゃあ...: ', error);
+  });
 
 
 

@@ -13,7 +13,7 @@ S.corridor_north_0 = new Stage("北棟0階廊下", 5400, {
 }, [
   new Event_Move(new vec(0, 550), 4760, () => S.passage_gym, "Left", se_door),
 
-  new Event_Move(new vec(810, 550), 1000, () => S.passage_0, "Up", se_door).set("start", () => { $.getScript("stages_east_and_west.js") }),
+  new Event_Move(new vec(810, 550), 1000, () => S.passage_0, "Up", se_door).set("start", () => { $.getScript("stages/stages_east_and_west.js") }),
 
   new Event_Move(new vec(2560, 550), 2520, () => S.craft_room, "Up", se_door),
   new Event_Move(new vec(3920, 550), 740, () => S.craft_room, "Up", se_door),
@@ -30,7 +30,7 @@ S.corridor_north_1 = new Stage("北棟1階廊下", 5400, {
     new Iimage("images/bg_corridor_stairs_1.png", 4320, 0, 1080, 720),
   ]
 }, [
-  new Event_Move(new vec(810, 550), 1000, () => S.passage_1, "Up", se_door).set("start", () => { $.getScript("stages_east_and_west.js") }),
+  new Event_Move(new vec(810, 550), 1000, () => S.passage_1, "Up", se_door).set("start", () => { $.getScript("stages/stages_east_and_west.js") }),
 
   new Event_Move(new vec(2560, 550), 2520, () => S.laboratory, "Up", se_door),
   new Event_Move(new vec(3920, 550), 740, () => S.laboratory, "Up", se_door),
@@ -47,7 +47,7 @@ S.corridor_north_2 = new Stage("北棟2階廊下", 5400, {
     new Iimage("images/bg_corridor_stairs_2.png", 4320, 0, 1080, 720),
   ]
 }, [
-  new Event_Move(new vec(810, 550), 1000, () => S.passage_2, "Up", se_door).set("start", () => { $.getScript("stages_east_and_west.js") }),
+  new Event_Move(new vec(810, 550), 1000, () => S.passage_2, "Up", se_door).set("start", () => { $.getScript("stages/stages_east_and_west.js") }),
 
   new Event_Move(new vec(2560, 550), 2520, () => S.cooking_room, "Up", se_door),
   new Event_Move(new vec(3920, 550), 740, () => S.cooking_room, "Up", se_door),
@@ -65,7 +65,7 @@ S.corridor_north_3 = new Stage("北棟3階廊下", 4320, {
     new Iimage("images/bg_corridor_exit_right.png", 3780, 0, 540, 720),
   ]
 }, [
-  new Event_Move(new vec(810, 550), 1000, () => S.passage_3, "Up", se_door).set("start", () => { $.getScript("stages_east_and_west.js") }),
+  new Event_Move(new vec(810, 550), 1000, () => S.passage_3, "Up", se_door).set("start", () => { $.getScript("stages/stages_east_and_west.js") }),
 
   new Event_Illustlation(new vec(1620, 550), 40, new Iimage("images/il_mirror.png", 0, 0, width, height, { camera: false })),
 
@@ -81,7 +81,7 @@ S.rooftop_north = new Stage("北棟屋上", 4320, {
   ]
 }, [
   new Event_Conversation(new vec(2160, 580), 40, null, ["かわいさ"], se_select, () => data.flag.member_num >= 4),
-  new Event_Conversation(new vec(2160, 580), 40, new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), [
+  new Event_Conversation(new vec(2160, 580), 40, new Iimage("images/ch_citri.png", 0, 0, 380, 380), [
     "シトリ: うわ、びっくりした<br>よく来たねこんなとこまで",
     "アモン: 何してるんだ?",
     "シトリ: か、風を感じてただけだよぉ<br>疑わないでね",
@@ -304,5 +304,5 @@ S.teachers_pool_locker_room_1 = new Stage("男性教員用プール更衣室", 1
 
 S.old_school_back_entrance = new Stage("旧小学校裏門", 4320, {}, [
   new Event_Move(new vec(0, 550), 6380, () => S.playground, "Left", se_road),
-  new Event_Move(new vec(2160, 550), 3240, () => S.old_school_back_garden, "Up", se_road).set("start", () => { $.getScript("stages_old_school.js") }),
+  new Event_Move(new vec(2160, 550), 3240, () => S.old_school_back_garden, "Up", se_road).set("start", () => { $.getScript("stages/stages_old_school.js") }),
 ], [])

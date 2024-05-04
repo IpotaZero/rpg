@@ -39,7 +39,6 @@ S.corridor_east_1 = new Stage("東棟1階廊下", 4860, {
     new Iimage("images/bg_corridor_exit_right.png", 4320, 0, 540, 720)
   ]
 }, [
-
   new Event_Move(new vec(740, 550), 900, () => S.classroom_1, "Up", se_door),
   new Event_Move(new vec(1440, 550), 200, () => S.classroom_1, "Up", se_door),
 
@@ -80,6 +79,9 @@ S.corridor_east_3 = new Stage("東棟3階廊下", 4860, {
     new Iimage("images/bg_corridor_exit_right.png", 4320, 0, 540, 720)
   ]
 }, [
+  new Event_Move(new vec(740, 550), 900, () => S.students_council_room, "Up", se_door),
+  new Event_Move(new vec(1440, 550), 200, () => S.students_council_room, "Up", se_door),
+
   new Event_Move(new vec(1910, 550), 1890, () => S.corridor_west_3, "Up", se_step),
 
   new Event_Move(new vec(3500, 550), 4040, () => S.corridor_east_2, "Up", se_step),
@@ -147,6 +149,23 @@ S.classroom_2 = new Stage("2年生教室", 1080,
     new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_student_0.png", 540, 580, 380, 380), ["物憂げな生徒:<br>んん...ぼくがここにいる意味なんてないよね...", "物憂げな生徒:<br>でも未だ帰りたくもないんだ..."], se_select),
 
     new Event_Move(new vec(900, 550), 740, () => S.corridor_east_2, "Up", se_door),
+  ], []
+)
+
+
+S.students_council_room = new Stage("生徒会室", 1080,
+  {
+    back: [new Iimage("images/bg_students_council_room_back.png", 0, 0, 1080, 720)],
+    // front: [new Iimage("images/bg_students_council_room_front.png", 0, 0, 1080, 720)]
+  },
+  [
+    new Event_Move(new vec(200, 550), 1440, () => S.corridor_east_3, "Up", se_door),
+
+    new Event_Conversation(new vec(270, 580), 40, new Iimage("images/ch_student_2.png", 540, 580, 380, 380), ["熱心な生徒:<br>絶対にぃーー!<br>置き勉を合法にするぞーー!", "他2人:おおー"], se_select),
+    new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_student_3.png", 540, 580, 380, 380, { reverse_x: true }), ["眠たげな生徒:<br>眠いねー"], se_select),
+    new Event_Conversation(new vec(810, 580), 40, new Iimage("images/ch_student_1.png", 540, 580, 380, 380, { reverse_x: true }), ["不真面目な生徒:<br>あたしはそんなにやる気はないんだけどね<br>点数を稼ぎたいから働いてるふりくらいはするさ"], se_select),
+
+    new Event_Move(new vec(900, 550), 740, () => S.corridor_east_3, "Up", se_door),
   ], []
 )
 
@@ -397,7 +416,7 @@ S.security_office = new Stage("守衛控え室", 1080, {
 }, [
 
   new Event_Conversation(new vec(540, 580), 40, null, ["力強さ"], se_select, () => data.flag.member_num >= 3),
-  new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_ammon_right.png", 0, 0, 380, 380),
+  new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_ammon.png", 0, 0, 380, 380),
     [
       "アモン: あー、なんだ<br>俺はもう今日の仕事は終わったと思ってたんだが",
       "プリン: おっイケメン発見",
@@ -461,7 +480,7 @@ S.passage_0 = new Stage("0階渡り廊下", 1080, {
   new Event_Move(new vec(0, 550), 4740, () => S.corridor_east_0, "Left", se_door),
 
   new Event_Conversation(new vec(1080, 550), 40, null, ["むり、鍵がないので", "ぴーんぽーんぱーんぽーん", "先生方へ連絡です<br>北棟のカギをお持ちの方は職員室までご返却お願いします", "ぴーんぽーんぱーんぽーん"], se_select, () => data.flag.member_num < 3),
-  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_0, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages_north.js") }),
+  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_0, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages/stages_north.js") }),
 ])
 
 S.passage_1 = new Stage("1階渡り廊下", 1080, {
@@ -470,7 +489,7 @@ S.passage_1 = new Stage("1階渡り廊下", 1080, {
   new Event_Move(new vec(0, 550), 4740, () => S.corridor_east_1, "Left", se_door),
 
   new Event_Conversation(new vec(1080, 550), 40, null, ["むり、鍵がないので", "ぴーんぽーんぱーんぽーん", "先生方へ連絡です<br>北棟のカギをお持ちの方は職員室までご返却お願いします", "ぴーんぽーんぱーんぽーん"], se_select, () => data.flag.member_num < 3),
-  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_1, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages_north.js") })
+  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_1, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages/stages_north.js") })
 ])
 
 S.passage_2 = new Stage("2階渡り廊下", 1080, {
@@ -478,7 +497,7 @@ S.passage_2 = new Stage("2階渡り廊下", 1080, {
 }, [
   new Event_Move(new vec(0, 550), 4740, () => S.corridor_east_2, "Left", se_door),
   new Event_Conversation(new vec(1080, 550), 40, null, ["むり、鍵がないので", "ぴーんぽーんぱーんぽーん", "先生方へ連絡です<br>北棟のカギをお持ちの方は職員室までご返却お願いします", "ぴーんぽーんぱーんぽーん"], se_select, () => data.flag.member_num < 3),
-  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_2, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages_north.js") })
+  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_2, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages/stages_north.js") })
 ])
 
 S.passage_3 = new Stage("3階渡り廊下", 1080, {
@@ -486,5 +505,5 @@ S.passage_3 = new Stage("3階渡り廊下", 1080, {
 }, [
   new Event_Move(new vec(0, 550), 4740, () => S.corridor_east_3, "Left", se_door),
   new Event_Conversation(new vec(1080, 550), 40, null, ["むり、鍵がないので", "ぴーんぽーんぱーんぽーん", "先生方へ連絡です<br>北棟のカギをお持ちの方は職員室までご返却お願いします", "ぴーんぽーんぱーんぽーん"], se_select, () => data.flag.member_num < 3),
-  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_3, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages_north.js") })
+  new Event_Move(new vec(1080, 550), 810, () => S.corridor_north_3, "Right", se_door, () => data.flag.member_num >= 3).set("start", () => { $.getScript("stages/stages_north.js") })
 ])

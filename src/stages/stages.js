@@ -302,8 +302,10 @@ const Event_Enemy = class extends Event_Stage {
     }
 
     draw() {
-        if (this.app) {
-            const app = this.app[this.direction]
+        if (this.app != null) {
+            const app = this.app
+
+            app.reverse_x = this.direction == 0
 
             app.x = this.p.x - app.width / 2
             app.y = this.p.y - app.height / 2
@@ -375,7 +377,7 @@ const health_room = new Stage("保健室", 2160, {
     // new Event_Move(new vec(270, 550), 270, () => S.m_health_room).set("end", () => { back_paper = back_paper_1 }),
     new Event_Move(new vec(1980, 550), 2360, () => S.corridor_east_0, "Up", se_door),
 
-    new Event_Conversation(new vec(1430, 580), 100, new Iimage("images/ch_purine_right.png", 0, 0, 380, 380),
+    new Event_Conversation(new vec(1430, 580), 100, new Iimage("images/ch_purine.png", 0, 0, 380, 380),
         [
             "プリン: あら、アクア どうしたの?",
             "プリン: なんでお仕事してるか分からなくなったって?",

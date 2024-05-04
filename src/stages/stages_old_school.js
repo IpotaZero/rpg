@@ -16,7 +16,7 @@ S.old_school_back_garden = new Stage("旧小学校裏庭", 6480, {
 }, [
   new Event_Move(new vec(510, 550), 2160, () => S.old_school_toilet_0, "Up", se_road),
 
-  new Event_Move(new vec(3240, 550), 2160, () => S.old_school_back_entrance, "Down", se_road).set("start", () => { $.getScript("stages_north.js") }),
+  new Event_Move(new vec(3240, 550), 2160, () => S.old_school_back_entrance, "Down", se_road).set("start", () => { $.getScript("stages/stages_north.js") }),
   new Event_Move(new vec(4320, 550), 3240, () => S.old_school_shoe_shelf, "Up", se_road).set("end", () => { data.front = 1 }),
 
 ], [], { _height: 680 })

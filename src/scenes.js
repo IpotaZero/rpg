@@ -70,6 +70,7 @@ const scene_title = new class extends Scene {
   }
 
   loop() {
+
     Irect(0, 0, width, height, "#121212")
     Ifont({ size: 60, colour: "white", font: "Pixel", text_align: "left" })
     Itext(this.frame, 48, 100, "Test Title")
@@ -94,36 +95,14 @@ const scene_main = new class extends Scene {
       r: 100,
     }
 
-    this.characters_data = [
-      {
-        name: "aqua",
-        app: [new Iimage("images/ch_aqua_right.png", 0, 0, 380, 380), new Iimage("images/ch_aqua_left.png", 0, 0, 380, 380)],
-        p: new vec(0, 0),
-        v: new vec(0, 0),
-        direction: 0,
-      },
-      {
-        name: "purine",
-        app: [new Iimage("images/ch_purine_right.png", 0, 0, 380, 380), new Iimage("images/ch_purine_left.png", 0, 0, 380, 380)],
-        p: new vec(0, 0),
-        v: new vec(0, 0),
-        direction: 0,
-      },
-      {
-        name: "ammon",
-        app: [new Iimage("images/ch_ammon_right.png", 0, 0, 380, 380), new Iimage("images/ch_ammon_left.png", 0, 0, 380, 380)],
-        p: new vec(0, 0),
-        v: new vec(0, 0),
-        direction: 0,
-      },
-      {
-        name: "citri",
-        app: [new Iimage("images/ch_citri_right.png", 0, 0, 380, 380), new Iimage("images/ch_citri_left.png", 0, 0, 380, 380)],
-        p: new vec(0, 0),
-        v: new vec(0, 0),
-        direction: 0,
-      },
-    ]
+    this.characters_data = ["aqua", "purine", "ammon", "citri"].map(name => ({
+      name: name,
+      app: new Iimage("images/ch_" + name + ".png", 0, 0, 380, 380),
+      p: new vec(0, 0),
+      v: new vec(0, 0),
+      direction: 0,
+    }))
+
 
     this.direction = "None"
 
@@ -142,9 +121,7 @@ const scene_main = new class extends Scene {
     else if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
 
     this.enemies = this.enemies.filter(e => e.enemy.hp > 0)
-    this.enemies.forEach(e => {
-      e.app[1].camera = true
-    })
+    this.enemies.forEach(e => { e.app.camera = true })
 
     this.front = [null, new Iimage("images/web.png", 0, 0, width, height, { camera: false, alpha: 0.5 })][data.front]
   }
@@ -156,10 +133,10 @@ const scene_main = new class extends Scene {
   loop() {
     this.player_move()
 
-    if (pushed.includes("cancel")) {
-      scene_manager.move_to(scene_menu)
-    }
+    // menu
+    if (pushed.includes("cancel")) { scene_manager.move_to(scene_menu) }
 
+    // event
     this.stage.events.forEach((e) => {
       if ((pushed.includes("ok") || pressed.includes("Arrow" + e.direction)) && e.sw() && e.is_touched()) {
         scene_event.event = e
@@ -168,10 +145,12 @@ const scene_main = new class extends Scene {
       }
     })
 
+    // enemy
     this.enemies.forEach(e => {
       e.loop()
     })
 
+    // draw
     this.draw_background()
     this.draw_characters()
     this.draw_front()
@@ -262,7 +241,8 @@ const scene_main = new class extends Scene {
     IcircleC(this.player.p.x, this.player.p.y, this.player.r, "black", "stroke", 2)
 
     this.characters.forEach(c => {
-      const app = c.app[c.direction]
+      const app = c.app
+      app.reverse_x = c.direction == 1
       app.x = c.p.x - 2 * this.player.r
       app.y = c.p.y - 2 * this.player.r - 30
       app.draw()
@@ -328,7 +308,7 @@ const scene_menu = new class extends Scene {
         "0": new Icommand.option(40, 60, ["しょうもうひん", "ちょうきほぞんりょういき"]),
         "[1-3]": new Icommand.option(40, 60, ["アクア", "プリン", "アモン", "シトリ"]),
         "4": new Icommand.do(() => {
-          $.getScript(["stages_east_and_west.js", "stages_old_school.js"][data.health_room])
+          $.getScript(["stages/stages_east_and_west.js", "stages/stages_old_school.js"][data.health_room])
           scene_event.event = new Event_Move(null, 1620, () => [health_room, old_health_room][data.health_room])
           scene_manager.move_to(scene_event)
         }),
@@ -455,7 +435,7 @@ const scene_battle = new class extends Scene {
     this.characters = [
       {
         name: "アクア",
-        app: new Iimage("images/ch_aqua_right.png", Icamera.p.x + 330, 390, 380, 380),
+        app: new Iimage("images/ch_aqua.png", Icamera.p.x + 330, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -472,7 +452,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "プリン",
-        app: new Iimage("images/ch_purine_right.png", Icamera.p.x + 190, 390, 380, 380),
+        app: new Iimage("images/ch_purine.png", Icamera.p.x + 190, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -489,7 +469,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "アモン",
-        app: new Iimage("images/ch_ammon_right.png", Icamera.p.x + 70, 390, 380, 380),
+        app: new Iimage("images/ch_ammon.png", Icamera.p.x + 70, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -506,7 +486,7 @@ const scene_battle = new class extends Scene {
       },
       {
         name: "シトリ",
-        app: new Iimage("images/ch_citri_right.png", Icamera.p.x - 60, 390, 380, 380),
+        app: new Iimage("images/ch_citri.png", Icamera.p.x - 60, 390, 380, 380),
 
         max_hp: 20,
         max_token: 20,
@@ -537,8 +517,9 @@ const scene_battle = new class extends Scene {
     this.frame = 0
 
     this.enemy.max_meter = this.max_meter
-    this.enemy.app[1].x = Icamera.p.x + 720
-    this.enemy.app[1].y = 380
+    this.enemy.app.x = Icamera.p.x + 720
+    this.enemy.app.y = 380
+    this.enemy.app.reverse_x = true
 
     this.log = [this.enemy.name + "があらわれた"]
 
@@ -618,7 +599,7 @@ const scene_battle = new class extends Scene {
     scene_main.draw_background()
     this.characters.forEach(c => { c.app.draw() })
 
-    this.enemy.app[1].draw()
+    this.enemy.app.draw()
 
     scene_main.draw_front()
 

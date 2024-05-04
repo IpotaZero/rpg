@@ -1,0 +1,8 @@
+﻿id,name,hp,token,attack,deffence,speed,credit,exp,image
+after_school_polyturner,放課後ポリターナー,10,0,20,4,1,10,10,images/ch_after_school_polyturner.png
+linear_on_demand,線形オンデマンド,30,0,20,4,1,10,10,
+black_board_vampire,ブラックボードバンパイア,,,,,,,,
+test_tremor,テストトレマー,,,,,,,,
+lunch_reviser,ランチレヴァイサー,,,,,,,,
+bookworm,図書魔人,,,,,,,,
+mona_liza,モナ・リザ,,,,,,,,
