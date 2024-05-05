@@ -418,10 +418,6 @@ function Iline2C(c, size, arr) {
 	Iline2(c, size, a);
 }
 
-function IimageC(image, x, y, width, height) {
-	ctx.drawImage(image, x - Icamera.p.x, y - Icamera.p.y, width, height);
-}
-
 const Icommand = class {
 	constructor(contents, loop) {
 		this.contents = contents

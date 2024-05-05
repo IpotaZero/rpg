@@ -35,9 +35,11 @@ const make_enemy_from_json = (json) => {
       app: new Iimage(enemy.image, 0, 580, 380, 380),
 
       action(character) {
-        const damage = Math.ceil((this.attack / 2 - character.deffence / 4) * (1 + Math.random() / 4))
+        const status = character.status
 
-        character.hp = Math.max(character.draw_hp - damage, 0)
+        const damage = Math.ceil((this.attack / 2 - status.deffence / 4) * (1 + Math.random() / 4))
+
+        status.hp = Math.max(status.draw_hp - damage, 0)
 
         Icamera.vibe_power = 24
 
@@ -60,13 +62,11 @@ const make_enemy_from_json = (json) => {
         Irect(850, 320, 120 * (this.meter / this.max_meter), 24, "#c0c0c0")
         Irect(850, 360, 120, 24, "black")
         Irect(850, 360, 120 * (this.hp / this.max_hp), 24, "#ff4040")
-
-
       }
-
     }
   }
 }
+
 const E = {}
 
 fetch("enemy_data.csv")
@@ -77,7 +77,7 @@ fetch("enemy_data.csv")
     make_enemy_from_json(json)
   })
   .catch(error => {
-    console.error('敵データが読み込めないにゃあ...: ', error);
+    console.error('敵データが読み込めないにゃあ...: ', error)
   });
 
 

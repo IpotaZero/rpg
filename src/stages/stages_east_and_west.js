@@ -134,6 +134,7 @@ S.classroom_1 = new Stage("1年生教室", 1080,
   },
   [
     new Event_Move(new vec(200, 550), 1440, () => S.corridor_east_1, "Up", se_door),
+    new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_student_0.png", 540, 580, 380, 380), ["教師アンドロイド:<br>アクアじゃないか<br>元気少ないな、大丈夫か?", "教師アンドロイド:<br>頼ってくれてもいいんだぞ、な?"/*, "無責任なことを"*/], se_select),
     new Event_Move(new vec(900, 550), 740, () => S.corridor_east_1, "Up", se_door),
   ], []
 )
@@ -348,7 +349,7 @@ S.toilet_west_2_0 = new Stage("西棟2階女子トイレ", 1080, { back: [new Ii
   new Event_Move(new vec(1080, 550), 2340, () => S.corridor_west_2, "Right", se_step),
 
   new Event_Conversation(new vec(160, 550), 40, null, ["何かの気配を感じる......"], se_select, () => data.flag.member_num < 4),
-  new Event_Conversation(new vec(160, 550), 40, null, ["シトリ: はーなーこさんっあーそびーましょー!", "???: いいよー!", "???: じゃあ首絞めごっこで遊ぼうか!"], () => data.flag.member_num >= 4),
+  new Event_Conversation(new vec(160, 550), 40, null, ["シトリ:<br>はーなーこさんっあーそびーましょー!", "???:<br>いいよー!", "???:<br>じゃあ首絞めごっこで遊ぼうか!"], se_select, () => data.flag.member_num >= 4),
 ], [], { gender: "f" })
 
 S.toilet_west_2_1 = new Stage("西棟2階男子トイレ", 1080, { back: [new Iimage("images/bg_toilet_1.png", 0, 0, 1080, 720)] }, [new Event_Move(new vec(1080, 550), 3040, () => S.corridor_west_2, "Right", se_step)], [], { gender: "m" })
@@ -367,7 +368,7 @@ S.office = new Stage("職員室", 1080, {
 S.principal = new Stage("校長室", 1080, {
   back: [new Iimage("images/bg_principal_back.png", 0, 0, 1080, 720)],
 }, [
-  new Event_Conversation(new vec(270, 550), 40, null, ["校長: 何故働いているか分からない、と?", "校長: 君たちはアンドロイドですからねえ<br>その問いは存在理由に近いのではないでしょうか?"]),
+  new Event_Conversation(new vec(270, 550), 40, null, ["校長:<br>何故働いているか分からない、と?", "校長:<br>君たちはアンドロイドですからねえ<br>その問いは存在理由に近いのではないでしょうか?"], se_select),
   new Event_Move(new vec(1080, 550), 4580, () => S.corridor_west_0, "Right", se_door)
 ])
 
@@ -376,14 +377,14 @@ S.kitchen = new Stage("給食室", 2160, {
   front: [new Iimage("images/bg_kitchen_front.png", 0, 0, 2160, 720)]
 }, [
   new Event_Move(new vec(200, 550), 5760, () => S.corridor_west_0, "Up", se_door),
-  new Event_Conversation(new vec(1080, 550), 40, null, ["料理長: ああああ!!!", "料理長: 調理場に私服で入ってくるんじゃあない!せめて髪をくくりやがれ!"]),
+  new Event_Conversation(new vec(1080, 550), 40, null, ["料理長:<br>ああああ!!!", "料理長:<br>調理場に私服で入ってくるんじゃあない!せめて髪をくくりやがれ!"], se_select),
   new Event_Move(new vec(1980, 550), 5060, () => S.corridor_west_0, "Up", se_door),
 ])
 
 S.paper_work_office = new Stage("事務室", 1080, {
   back: [new Iimage("images/bg_paper_work_office.png", 0, 0, 1080, 720)],
 }, [
-  new Event_Conversation(new vec(540, 550), 40, null, ["事務員: 仕事が終わらないぃ～～!!", "事務員: 見てよこのパソコン!<br>君のOSの10世代は前だよ!"]),
+  new Event_Conversation(new vec(540, 550), 40, null, ["事務員:<br>仕事が終わらないぃ～～!!", "事務員:<br>見てよこのパソコン!<br>君のOSの10世代は前だよ!"], se_select),
   new Event_Move(new vec(900, 550), 3460, () => S.corridor_west_1, "Up", se_door)
 ])
 
@@ -399,7 +400,7 @@ S.library_room = new Stage("図書室", 2160, {
   front: [new Iimage("images/bg_library_room_front.png", 0, 0, 2160, 720)]
 }, [
   new Event_Move(new vec(200, 550), 5760, () => S.corridor_west_1, "Up", se_door),
-  new Event_Conversation(new vec(1080, 550), 40, null, ["本好きの少女: 私ファンタジーが好きなんです<br>特に世界観が緻密なものが", "本好きの少女: 自分の生活を忘れられるからでしょうか"]),
+  new Event_Conversation(new vec(1080, 550), 40, null, ["本好きの少女:<br>私ファンタジーが好きなんです<br>特に世界観が緻密なものが", "本好きの少女:<br>自分の生活を忘れられるからでしょうか"]),
   new Event_Move(new vec(1980, 550), 5060, () => S.corridor_west_1, "Up", se_door),
 ])
 
@@ -418,15 +419,15 @@ S.security_office = new Stage("守衛控え室", 1080, {
   new Event_Conversation(new vec(540, 580), 40, null, ["力強さ"], se_select, () => data.flag.member_num >= 3),
   new Event_Conversation(new vec(540, 580), 40, new Iimage("images/ch_ammon.png", 0, 0, 380, 380),
     [
-      "アモン: あー、なんだ<br>俺はもう今日の仕事は終わったと思ってたんだが",
-      "プリン: おっイケメン発見",
-      "アモン: ......何か用かい?",
-      "アモン: ......なんで働いてるかって?<br>そうだな、子供たちの笑顔を守りたい、とか?",
-      "アモン: 実際なんで働いてるかなんてわかんねえよ<br>俺が知りたいくらいさ",
-      "プリン: じゃあさ、一緒に探しに行こうよ!",
-      "アモン: ......まあ悪くないかもな<br>いいぜ!ついて行ってやろうじゃないか!",
+      "アモン:<br>あー、なんだ<br>俺はもう今日の仕事は終わったと思ってたんだが",
+      "プリン:<br>おっイケメン発見",
+      "アモン:<br>......何か用かい?",
+      "アモン:<br>......なんで働いてるかって?<br>そうだな、子供たちの笑顔を守りたい、とか?",
+      "アモン:<br>実際なんで働いてるかなんてわかんねえよ<br>俺が知りたいくらいさ",
+      "プリン:<br>じゃあさ、一緒に探しに行こうよ!",
+      "アモン:<br>......まあ悪くないかもな<br>いいぜ!ついて行ってやろうじゃないか!",
       "アモンが仲間になった",
-      "アモン: そうだ、俺予備のカギ持ってるから北棟とかにも行けるぞ"
+      "アモン:<br>そうだ、俺予備のカギ持ってるから北棟とかにも行けるぞ"
     ],
     null,
     () => data.flag.member_num < 3

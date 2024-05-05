@@ -87,23 +87,6 @@ const scene_main = new class extends Scene {
   constructor() {
     super()
 
-    this.player = {
-      p: new vec(width / 2, height - 100),
-      v: new vec(0, 0),
-      is_on_floor: true,
-      speed: 24,
-      r: 100,
-    }
-
-    this.characters_data = ["aqua", "purine", "ammon", "citri"].map(name => ({
-      name: name,
-      app: new Iimage("images/ch_" + name + ".png", 0, 0, 380, 380),
-      p: new vec(0, 0),
-      v: new vec(0, 0),
-      direction: 0,
-    }))
-
-
     this.direction = "None"
 
     this.enemies = []
@@ -113,17 +96,15 @@ const scene_main = new class extends Scene {
   }
 
   start() {
-    this.characters = this.characters_data.slice(0, data.flag.member_num)
+    this.characters = Players.slice(0, data.flag.member_num)
 
     // this.characters.forEach(c => { c.p = this.player.p })
 
-    if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.name)) }
-    else if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.name)) }
+    if (this.stage.gender == "f") { this.characters = this.characters.filter(c => ["aqua", "purine", "citri"].includes(c.id)) }
+    else if (this.stage.gender == "m") { this.characters = this.characters.filter(c => ["aqua", "ammon"].includes(c.id)) }
 
     this.enemies = this.enemies.filter(e => e.enemy.hp > 0)
-    this.enemies.forEach(e => { e.app.camera = true })
-
-    this.front = [null, new Iimage("images/web.png", 0, 0, width, height, { camera: false, alpha: 0.5 })][data.front]
+    this.enemies.forEach(e => { e.enemy.app.camera = true })
   }
 
   end() {
@@ -158,41 +139,42 @@ const scene_main = new class extends Scene {
   }
 
   player_move() {
-    //player move
-    this.player.v.x = 0
-
     this.direction = "None"
 
+    const player = this.characters[0]
+
     if (mouse.clicked && !mouse.right_clicked) {
-      if (mouse.p.x / c_size > this.player.p.x - Icamera.p.x) { this.direction = "Right" }
-      if (mouse.p.x / c_size < this.player.p.x - Icamera.p.x) { this.direction = "Left" }
+      if (mouse.p.x / c_size > player.p.x - Icamera.p.x) { this.direction = "Right" }
+      if (mouse.p.x / c_size < player.p.x - Icamera.p.x) { this.direction = "Left" }
     }
     if (pressed.includes("ArrowRight")) { this.direction = "Right" }
     if (pressed.includes("ArrowLeft")) { this.direction = "Left" }
-    if (this.direction == "Right") { this.player.v.x++; this.characters[0].direction = 0 }
-    if (this.direction == "Left") { this.player.v.x--; this.characters[0].direction = 1 }
 
 
-    this.player.speed = (pressed.includes("ShiftLeft") || pressed.includes("ShiftRight")) ? 72 : 36
-    this.player.v.x = Math.sign(this.player.v.x) * this.player.speed
-    this.player.p = this.player.p.add(this.player.v)
-    this.player.p.y = this.stage.height - this.player.r
+    player.v.x = 0
+
+    if (this.direction == "Right") { player.v.x++; player.direction = 0 }
+    if (this.direction == "Left") { player.v.x--; player.direction = 1 }
+
+
+    player.speed = (pressed.includes("ShiftLeft") || pressed.includes("ShiftRight")) ? 72 : 36
+    player.v.x = Math.sign(player.v.x) * player.speed
+    player.p = player.p.add(player.v)
+    player.p.y = this.stage.height - player.r
 
     //clamp
-    if (this.player.p.x < this.player.r) { this.player.p.x = this.player.r }
-    if (this.player.p.x > this.stage.width - this.player.r) { this.player.p.x = this.stage.width - this.player.r }
+    if (player.p.x < player.r) { player.p.x = player.r }
+    if (player.p.x > this.stage.width - player.r) { player.p.x = this.stage.width - player.r }
 
     //character
     this.characters.forEach((c, i) => {
-      if (i == 0) {
-        c.p = this.player.p
-      } else {
-        if (Math.abs(c.p.x - this.player.p.x) > 180 * i) {
-          c.v.x = Math.sign(this.player.p.x - c.p.x) * this.player.speed
+      if (i > 0) {
+        if (Math.abs(c.p.x - player.p.x) > 180 * i) {
+          c.v.x = Math.sign(player.p.x - c.p.x) * player.speed
           c.direction = c.v.x > 0 ? 0 : 1
           c.p = c.p.add(c.v)
         }
-        c.p.y = this.player.p.y
+        c.p.y = player.p.y
       }
     })
 
@@ -201,7 +183,7 @@ const scene_main = new class extends Scene {
 
     Icamera.range[1] = this.stage.width
 
-    Icamera.target = this.player.p
+    Icamera.target = player.p
     //camera
     Icamera.run()
   }
@@ -221,8 +203,6 @@ const scene_main = new class extends Scene {
   draw_front() {
     this.stage.backgrounds.front?.forEach(i => { i.draw() })
 
-    this.front?.draw()
-
     if (this.stage.lighting) {
       Irect(0, 0, width, height, this.stage.lighting)
     }
@@ -237,17 +217,19 @@ const scene_main = new class extends Scene {
     ctx.shadowBlur = 5;
 
     //chracters
-    // IcircleC(this.player.p.x, this.player.p.y, this.player.r, "#c0c0c0")
-    IcircleC(this.player.p.x, this.player.p.y, this.player.r, "black", "stroke", 2)
+    const player = this.characters[0]
+
+    IcircleC(player.p.x, player.p.y, player.r, "black", "stroke", 2)
 
     this.characters.forEach(c => {
       const app = c.app
       app.reverse_x = c.direction == 1
-      app.x = c.p.x - 2 * this.player.r
-      app.y = c.p.y - 2 * this.player.r - 30
+      app.x = c.p.x - 2 * player.r
+      app.y = c.p.y - 2 * player.r - 30
       app.draw()
     })
 
+    //events
     this.stage.events.forEach((e) => {
       if (e.sw()) { e.draw() }
     })
@@ -262,7 +244,7 @@ const scene_main = new class extends Scene {
   draw_meta() {
     Irect(10, 10, 600, 150, "#c0c0c0c0")
     Ifont({ size: 32, colour: "black", font: "Pixel" })
-    Itext4(null, 20, 50, font_size, [this.stage.name, "タスク: " + data.task, "x: " + this.player.p.x/*, "memory: " + performance.memory.usedJSHeapSize*/])
+    Itext4(null, 20, 50, font_size, [this.stage.name, "タスク: " + data.task, "x: " + this.characters[0].p.x/*, "memory: " + performance.memory.usedJSHeapSize*/])
   }
 }()
 
@@ -389,11 +371,13 @@ const scene_battle = new class extends Scene {
         "0.": new Icommand.option(30, 64, ["こうげき", "アルゴリズム", "アイテム"]),
         "0.0": new Icommand.do((command) => {
           // se_punch.play()
+
           const character = this.characters[command.current_branch[1]]
-          const damage = Math.ceil(character.attack / 2 - this.enemy.deffence / 4)
+          const status = character.status
+          const damage = Math.ceil(status.attack / 2 - this.enemy.deffence / 4)
 
           this.enemy.hp = Math.max(this.enemy.hp - damage, 0)
-          character.meter = 0
+          status.meter = 0
 
           this.log.push(character.name + "のこうげき", this.enemy.name + "に" + damage + "のダメージ")
 
@@ -411,20 +395,22 @@ const scene_battle = new class extends Scene {
       {
         "0.*": (me) => {
           this.characters.forEach((c, i) => {
+            const status = c.status
+
             Irect(240, 40 + (font_size + 6) * i, 120, 24, "black")
-            if (c.meter < this.max_meter) { Irect(240, 40 + (font_size + 6) * i, 120 * (c.meter / this.max_meter), 24, "#c0c0c0") }
+            if (status.meter < this.max_meter) { Irect(240, 40 + (font_size + 6) * i, 120 * (status.meter / this.max_meter), 24, "#c0c0c0") }
             else { Irect(240, 40 + (font_size + 6) * i, 120, 24, "#80ff80") }
 
             Irect(380, 40 + (font_size + 6) * i, 120, 24, "black")
-            Irect(380, 40 + (font_size + 6) * i, 120 * (c.draw_hp / c.max_hp), 24, "#804080")
-            Irect(380, 40 + (font_size + 6) * i, 120 * (c.hp / c.max_hp), 24, "#ff4040")
+            Irect(380, 40 + (font_size + 6) * i, 120 * (status.draw_hp / status.max_hp), 24, "#804080")
+            Irect(380, 40 + (font_size + 6) * i, 120 * (status.hp / status.max_hp), 24, "#ff4040")
             Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "center" })
-            Itext(null, 440, 40 + (font_size + 6) * i + font_size - 4, c.draw_hp + "/" + c.max_hp)
+            Itext(null, 440, 40 + (font_size + 6) * i + font_size - 4, status.draw_hp + "/" + status.max_hp)
 
             Irect(520, 40 + (font_size + 6) * i, 120, 24, "black")
-            Irect(520, 40 + (font_size + 6) * i, 120 * (c.token / c.max_token), 24, "#4040ff")
+            Irect(520, 40 + (font_size + 6) * i, 120 * (status.token / status.max_token), 24, "#4040ff")
             Ifont({ size: 24, colour: "#c0c0c0", font: "Pixel", text_align: "center" })
-            Itext(null, 580, 40 + (font_size + 6) * i + font_size - 4, c.token + "/" + c.max_token)
+            Itext(null, 580, 40 + (font_size + 6) * i + font_size - 4, status.token + "/" + status.max_token)
           })
         },
       }
@@ -432,78 +418,20 @@ const scene_battle = new class extends Scene {
   }
 
   start() {
-    this.characters = [
-      {
-        name: "アクア",
-        app: new Iimage("images/ch_aqua.png", Icamera.p.x + 330, 390, 380, 380),
+    this.characters = scene_main.characters
 
-        max_hp: 20,
-        max_token: 20,
-        speed: 2,
-        attack: 8,
-        deffence: 4,
+    const player_names = []
 
-        draw_hp: 20,
-        hp: 20,
-        token: 20,
-        meter: 0,
+    this.characters.forEach((c, i) => {
+      c.app.reverse_x = false
+      c.app.x = Icamera.p.x + (this.characters.length - i - 1) * 150
 
-        is_dead: false,
-      },
-      {
-        name: "プリン",
-        app: new Iimage("images/ch_purine.png", Icamera.p.x + 190, 390, 380, 380),
+      c.status.meter = 0
 
-        max_hp: 20,
-        max_token: 20,
-        speed: 1,
-        attack: 4,
-        deffence: 4,
+      player_names.push(c.name)
+    })
 
-        draw_hp: 20,
-        hp: 20,
-        token: 20,
-        meter: 0,
-
-        is_dead: false,
-      },
-      {
-        name: "アモン",
-        app: new Iimage("images/ch_ammon.png", Icamera.p.x + 70, 390, 380, 380),
-
-        max_hp: 20,
-        max_token: 20,
-        speed: 3,
-        attack: 4,
-        deffence: 4,
-
-        draw_hp: 20,
-        hp: 20,
-        token: 20,
-        meter: 0,
-
-        is_dead: false,
-      },
-      {
-        name: "シトリ",
-        app: new Iimage("images/ch_citri.png", Icamera.p.x - 60, 390, 380, 380),
-
-        max_hp: 20,
-        max_token: 20,
-        speed: 2,
-        attack: 4,
-        deffence: 4,
-
-        draw_hp: 20,
-        hp: 20,
-        token: 20,
-        meter: 0,
-
-        is_dead: false,
-      },
-    ].slice(0, data.flag.member_num)
-
-    this.command.contents["0"].options = ["アクア", "プリン", "アモン", "シトリ"].slice(0, data.flag.member_num)
+    this.command.contents["0"].options = player_names
 
     this.enemy = E.after_school_polyturner
     this.enemy.reset()
@@ -511,7 +439,7 @@ const scene_battle = new class extends Scene {
     //speed check
     let num = 1
     let sum = this.enemy.speed
-    this.characters.forEach(c => { sum += c.speed; num++ })
+    this.characters.forEach(c => { sum += c.status.speed; num++ })
     this.max_meter = Math.floor(sum * 50)
 
     this.frame = 0
@@ -538,18 +466,19 @@ const scene_battle = new class extends Scene {
 
   player_action() {
     this.characters.forEach((c, i) => {
-      if (c.is_dead) { return }
+      const status = c.status
 
-      c.meter = Math.min(c.meter + c.speed, this.max_meter)
+      if (status.draw_hp <= 0) { return }
 
-      this.command.contents["0"].selectable[i] = c.meter == this.max_meter ? true : false
+      status.meter = Math.min(status.meter + status.speed, this.max_meter)
+
+      this.command.contents["0"].selectable[i] = status.meter == this.max_meter ? true : false
 
       if (this.frame % 4 == 0) {
-        c.draw_hp += Math.sign(c.hp - c.draw_hp)
+        status.draw_hp += Math.sign(status.hp - status.draw_hp)
 
-        if (c.draw_hp <= 0) {
-          c.is_dead = true
-          c.meter = 0
+        if (status.draw_hp <= 0) {
+          status.meter = 0
           this.command.contents["0"].selectable[i] = false
           this.log.push(c.name + "はスリープモードにおちい", "った")
         }
@@ -565,7 +494,7 @@ const scene_battle = new class extends Scene {
     this.enemy.meter = Math.min(this.enemy.meter + this.enemy.speed, this.max_meter)
 
     if (this.enemy.meter == this.max_meter) {
-      const log = this.enemy.action(Irandom(this.characters.filter(c => !c.is_dead)))
+      const log = this.enemy.action(Irandom(this.characters.filter(c => c.status.draw_hp > 0)))
 
       this.log.push(...log)
     }
@@ -578,14 +507,14 @@ const scene_battle = new class extends Scene {
 
     this.player_action()
 
-    if (this.characters.every(c => c.is_dead)) {
-      this.characters.forEach(c => { c.hp = 20; c.is_dead = false })
+    // when everyone is dead
+    if (this.characters.every(c => c.status.draw_hp <= 0)) {
+      this.characters.forEach(c => { c.status.hp = 20; c.status.draw_hp = 20 })
     }
 
     if (this.enemy.hp <= 0) { scene_manager.move_to(scene_win) }
 
     this.enemy_action()
-
 
 
     // if (this.aqua.draw_hp <= 0) { this.log.push("まーけたー") }
@@ -618,9 +547,6 @@ const scene_battle = new class extends Scene {
         c.life = 120
       }
     })
-
-
-
 
     ctx.globalAlpha = 1
 

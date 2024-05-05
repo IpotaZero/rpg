@@ -38,7 +38,7 @@ const Stage = class {
 
 const ef_ex = new Iimage("images/ef_ex.png", 0, 300, 120, 120)
 
-const Event_Stage = class {
+const Event_Origin = class {
     constructor(p = new vec(0, 0), r = 40, app = null, sw = () => true) {
         this.p = p
         this.r = r
@@ -75,8 +75,8 @@ const Event_Stage = class {
         }
 
         if (this.is_touched()) {
-            ef_ex.x = scene_main.player.p.x
-            ef_ex.y = scene_main.player.p.y - 300
+            ef_ex.x = scene_main.characters[0].p.x
+            ef_ex.y = scene_main.characters[0].p.y - 300
             ef_ex.draw()
         }
 
@@ -94,7 +94,7 @@ const Event_Stage = class {
     }
 
     is_touched() {
-        return scene_main.player.p.sub(this.p).length() < scene_main.player.r + this.r
+        return scene_main.characters[0].p.sub(this.p).length() < scene_main.characters[0].r + this.r
     }
 
     reset() {
@@ -102,7 +102,7 @@ const Event_Stage = class {
     }
 }
 
-const Event_Move = class extends Event_Stage {
+const Event_Move = class extends Event_Origin {
     constructor(p = new vec(0, 0), x = 0, to, direction = null, sound = null, sw = () => true) {
         super(p, 40, null, sw)
 
@@ -130,15 +130,15 @@ const Event_Move = class extends Event_Stage {
         if (this.frame == 0) {
             this.sound?.play()
         } else if (this.frame == 12) {
-            scene_main.player.p.x = this.x
+            scene_main.characters[0].p.x = this.x
             scene_main.stage = this.to()
 
             Icamera.range[1] = scene_main.stage.width
 
-            Icamera.p.x = scene_main.player.p.x - width / 2
+            Icamera.p.x = scene_main.characters[0].p.x - width / 2
             Icamera.clamp()
 
-            scene_main.characters_data.forEach(c => { c.p = scene_main.player.p })
+            Players.forEach(c => { c.p = scene_main.characters[0].p })
         } else if (this.frame == 24) {
             scene_main.enemies = []
 
@@ -151,7 +151,7 @@ const Event_Move = class extends Event_Stage {
                     x = Math.floor(scene_main.stage.width * Math.random())
                 }
 
-                scene_main.enemies.push(new Event_Enemy(new vec(x, 580), 40, enemy.app, enemy))
+                scene_main.enemies.push(new Event_Enemy(new vec(x, 580), 40, enemy))
             })
 
             this.is_done = true
@@ -162,7 +162,7 @@ const Event_Move = class extends Event_Stage {
 
 }
 
-const Event_Conversation = class extends Event_Stage {
+const Event_Conversation = class extends Event_Origin {
     constructor(p = new vec(0, 0), r = 40, app = null, text = [], voice = null, sw = () => true) {
         super(p, r, app, sw)
         this.text = text
@@ -200,8 +200,8 @@ const Event_Conversation = class extends Event_Stage {
     }
 
     reset() {
-        scene_main.player.p.y = height - scene_main.player.r
-        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+        scene_main.characters[0].p.y = height - scene_main.characters[0].r
+        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.characters[0].r })
 
         this.is_done = false
         this.frame = 0
@@ -209,7 +209,7 @@ const Event_Conversation = class extends Event_Stage {
     }
 }
 
-const Event_Command = class extends Event_Stage {
+const Event_Command = class extends Event_Origin {
     constructor(p, r, app, command, sw = () => true) {
         super(p, r, app, sw)
         this.command = command
@@ -230,15 +230,15 @@ const Event_Command = class extends Event_Stage {
 
     reset() {
         Sound_Data.text = null
-        scene_main.player.p.y = scene_main.stage.height - scene_main.player.r
-        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.player.r })
+        scene_main.characters[0].p.y = scene_main.stage.height - scene_main.characters[0].r
+        scene_main.characters.forEach(c => { c.p.y = scene_main.stage.height - scene_main.characters[0].r })
 
         this.is_done = false
         this.command.reset()
     }
 }
 
-const Event_Illustlation = class extends Event_Stage {
+const Event_Illustlation = class extends Event_Origin {
     constructor(p, r, illust, sw = () => true) {
         super(p, r, null, sw)
         this.illust = illust
@@ -256,9 +256,9 @@ const Event_Illustlation = class extends Event_Stage {
     }
 }
 
-const Event_Enemy = class extends Event_Stage {
-    constructor(p, r, app, enemy) {
-        super(p, r, app)
+const Event_Enemy = class extends Event_Origin {
+    constructor(p, r, enemy) {
+        super(p, r, null)
         this.enemy = enemy
 
         this.direction = 0
@@ -268,50 +268,48 @@ const Event_Enemy = class extends Event_Stage {
     }
 
     loop() {
-        if (this.is_touched() && this.cooldown == 0) {
-            this.cooldown = 60
+        if (this.cooldown == 0) {
+            if (this.is_touched()) {
+                this.cooldown = 60
 
-            se_battle?.play()
+                se_battle?.play()
 
-            scene_battle.enemy = this.enemy
+                scene_battle.enemy = this.enemy
 
-            scene_dark.run("fall", 24, scene_battle, (frame) => {
-                scene_main.draw_background()
-                scene_main.draw_front()
+                scene_dark.run("fall", 24, scene_battle, (frame) => {
+                    scene_main.draw_background()
+                    scene_main.draw_front()
 
-                Icamera.run()
+                    Icamera.run()
 
-                if (frame > 12) {
-                    ctx.globalAlpha = 0.4
-                    Irect(0, 0, width, height, "#400040")
-                    ctx.globalAlpha = 1
-                }
-            })
+                    if (frame > 12) {
+                        ctx.globalAlpha = 0.4
+                        Irect(0, 0, width, height, "#400040")
+                        ctx.globalAlpha = 1
+                    }
+                })
+            }
 
+            if (this.p.sub(scene_main.characters[0].p).length() < 1080) {
+                const d = Math.sign(scene_main.characters[0].p.x - this.p.x)
+                this.p.x += d * 4
+
+                this.direction = d > 0 ? 0 : 1
+            }
+        } else {
+            this.cooldown--
         }
-
-        if (this.cooldown == 0 && this.p.sub(scene_main.player.p).length() < 1080) {
-            const d = Math.sign(scene_main.player.p.x - this.p.x)
-            this.p.x += d * 4
-
-            this.direction = d > 0 ? 0 : 1
-        }
-
-        this.cooldown = Math.max(this.cooldown - 1, 0)
 
     }
 
     draw() {
-        if (this.app != null) {
-            const app = this.app
+        const app = this.enemy.app
 
-            app.reverse_x = this.direction == 0
+        app.reverse_x = this.direction == 1
+        app.x = this.p.x - app.width / 2
+        app.y = this.p.y - app.height / 2
 
-            app.x = this.p.x - app.width / 2
-            app.y = this.p.y - app.height / 2
-            app.draw()
-
-        }
+        app.draw()
 
         IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2)
     }
@@ -325,7 +323,7 @@ const Event_Enemy = class extends Event_Stage {
 
 let S = {}
 
-const event_nothing = new Event_Stage(new vec(0, 0), 40, null).set("draw", function () { IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2) })
+// const event_nothing = new Event_Origin(new vec(0, 0), 40, null).set("draw", function () { IcircleC(this.p.x, this.p.y, this.r, "black", "stroke", 2) })
 
 const stage_temporary = new Stage("仮部屋", 1080, {}, [])
 
@@ -389,7 +387,7 @@ const health_room = new Stage("保健室", 2160, {
         ],
         se_purine
         , () => data.flag.member_num < 2
-    ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2; scene_main.characters_data[1].p.x = 1430 }),
+    ).set("end", () => { data.task = "いろんな人とはなす"; data.flag.member_num = 2 }),
     new Event_Conversation(new vec(1430, 580), 100, null, ["やさしさ"], se_select, () => data.flag.member_num >= 2),
 
     new Event_Command(new vec(270, 550), 40, null, new Icommand({
@@ -409,6 +407,7 @@ const old_health_room = new Stage("保険室", 2160, {
         new Iimage("images/bg_health_room_0.png", 0, 0, 1080, 720),
         new Iimage("images/bg_old_health_room.png", 1080, 0, 1080, 720),
     ],
+    front: [new Iimage("images/web.png", 0, 0, 1080, 720, { camera: false, alpha: 0.5 })]
 }, [
     new Event_Command(new vec(270, 550), 40, null, new Icommand({
         "": new Icommand.option(40, 80, ["目をつむる", "つむらない"]),
